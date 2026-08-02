@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Backend for Portfolio Application (HTTP API)
+
+Parameters:
+  BlogsTable:
+    Type: String
+    Default: BlogsTable
+  CommentsTable:
+    Type: String
+    Default: BlogCommentsTable
+  SkillsTable:
+    Type: String
+    Default: SkillsTable
+  ProjectsTable:
+    Type: String
+    Default: ProjectsTable
+  ProfileTable:
+    Type: String
+    Default: ProfileTable
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.13
+    Architectures:
+      - x86_64
+    LoggingConfig:
+      LogFormat: JSON
+      ApplicationLogLevel: INFO
+      SystemLogLevel: INFO
+    Environment:
+      Variables:
+        BLOG_TABLE: !Ref BlogsTable
+        COMMENTS_TABLE: !Ref CommentsTable
+        SKILL_TABLE: !Ref SkillsTable
+        PROJECTS_TABLE: !Ref ProjectsTable
+        PROFILE_TABLE: !Ref ProfileTable
+        JWT_SECRET: '{{resolve:ssm:/portfolio/JWT_SECRET}}'
+        ADMIN_EMAIL: '{{resolve:ssm:/portfolio/ADMIN_EMAIL}}'
+        ADMIN_PASSWORD: '{{resolve:ssm:/portfolio/ADMIN_PASSWORD}}'
+        BOOTSTRAP_SECRET: '{{resolve:ssm:/portfolio/BOOTSTRAP_SECRET}}'
+        R2_ACCOUNT_ID: '{{resolve:ssm:/portfolio/R2_ACCOUNT_ID}}'
+        R2_ACCESS_KEY_ID: '{{resolve:ssm:/portfolio/R2_ACCESS_KEY_ID}}'
+        R2_SECRET_ACCESS_KEY: '{{resolve:ssm:/portfolio/R2_SECRET_ACCESS_KEY}}'
+        R2_BUCKET_NAME: '{{resolve:ssm:/portfolio/R2_BUCKET_NAME}}'
+        R2_PUBLIC_BASE_URL: '{{resolve:ssm:/portfolio/R2_PUBLIC_BASE_URL}}'
+
+Resources:
+  ServerlessHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: Prod
+      CorsConfiguration:
+        AllowOrigins:
+          - https://admin.kanbs.me
+          - https://portfolio-frontend-admin.pages.dev
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+          - authorization
+          - x-bootstrap-secret
+        AllowCredentials: true
+      RouteSettings:
+        'POST /admin/login':
+          ThrottlingBurstLimit: 5
+          ThrottlingRateLimit: 10
+        'POST /admin/login/totp':
+          ThrottlingBurstLimit: 5
+          ThrottlingRateLimit: 10
+
+  BackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: app.main.handler
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ServerlessHttpApi
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BlogsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CommentsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SkillsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProjectsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProfileTable
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API endpoint URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

@@ -1,14 +1,14 @@
 # Kanbs Portfolio — Deployment Guide
 
-Personal portfolio monorepo: **frontend** (public site) + **admin** (CMS) + **backend** (serverless API).
+Personal portfolio monorepo: **frontend-public** (public site) + **frontend-admin** (CMS) + **core-backend** (serverless API).
 
-| Folder     | What it is                                     | Stack                        |
-|------------|------------------------------------------------|------------------------------|
-| `frontend/` | Public portfolio site (dev port `5173`)        | React + Vite                 |
-| `admin/`    | Admin CMS for managing content (dev port `5174`)| React + Vite                |
-| `backend/`  | API for both apps                              | FastAPI + AWS Lambda/DynamoDB|
+| Folder          | What it is                                     | Stack                        |
+|-----------------|------------------------------------------------|------------------------------|
+| `frontend-public/` | Public portfolio site (dev port `5173`)     | React + Vite                 |
+| `frontend-admin/`  | Admin CMS for managing content (dev port `5174`)| React + Vite              |
+| `core-backend/`    | API for both apps                           | FastAPI + AWS Lambda/DynamoDB|
 
-Both frontends talk to the backend API. The API URL comes from `VITE_API_URL` (`frontend/.env` / `admin/.env`, copied from their `.env.example`).
+Both frontends talk to the backend API. The API URL comes from `VITE_API_URL` (`frontend-public/.env` / `frontend-admin/.env`, copied from their `.env.example`).
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ Both frontends talk to the backend API. The API URL comes from `VITE_API_URL` (`
 ### 1. Backend (FastAPI + DynamoDB local)
 
 ```bash
-cd backend
+cd core-backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
@@ -45,7 +45,7 @@ API is now at `http://localhost:8000` (docs at `/docs`).
 ### 2. Admin CMS
 
 ```bash
-cd admin
+cd frontend-admin
 cp .env.example .env              # VITE_API_URL=http://localhost:8000
 npm install
 npm run dev                       # http://localhost:5174
@@ -54,7 +54,7 @@ npm run dev                       # http://localhost:5174
 ### 3. Frontend
 
 ```bash
-cd frontend
+cd frontend-public
 cp .env.example .env              # VITE_API_URL=http://localhost:8000
 npm install
 npm run dev                       # http://localhost:5173
@@ -68,7 +68,7 @@ Init once, then login with email + password + TOTP:
 
 ```bash
 curl -X POST http://localhost:8000/admin/auth/init \
-  -H "x-bootstrap-secret: <BOOTSTRAP_SECRET from backend/.env>"
+  -H "x-bootstrap-secret: <BOOTSTRAP_SECRET from core-backend/.env>"
 # -> returns totp_secret: add to your authenticator app
 ```
 
@@ -83,7 +83,7 @@ Architecture: **AWS SAM (Lambda + API Gateway + DynamoDB)** for the API, **Cloud
 ### 1. Backend + admin init (one command)
 
 ```bash
-cd backend
+cd core-backend
 ./scripts/deploy.sh               # prompts for secrets once, then builds, deploys, and inits the admin
 ```
 
@@ -104,7 +104,7 @@ R2 credentials are **required** (uploads are part of the project) — have your 
 ### 2. Admin CMS (Cloudflare Pages)
 
 ```bash
-cd admin
+cd frontend-admin
 npm install
 VITE_API_URL=https://<api-id>.execute-api.ap-south-1.amazonaws.com npm run build
 ```
@@ -114,7 +114,7 @@ Deploy the `dist/` folder to Cloudflare Pages — or set `VITE_API_URL` as a Pag
 ### 3. Frontend (Cloudflare Pages)
 
 ```bash
-cd frontend
+cd frontend-public
 npm install
 VITE_API_URL=https://<api-id>.execute-api.ap-south-1.amazonaws.com npm run build
 ```
@@ -124,7 +124,7 @@ Same as admin: set `VITE_API_URL`, `npm run build`, deploy `dist/`.
 ### 4. Production gotchas
 
 - **Cookies are `SameSite=strict`** — the admin UI and API must be on the *same site* (or localhost). `admin.kanbs.me` + `*.execute-api.ap-south-1.amazonaws.com` are *different* sites → admin login will fail in production. Fix: point a custom domain at the API via API Gateway (e.g. `api.kanbs.me`) or serve the admin UI on the API's own domain.
-- If you change CORS origins, update `ALLOWED_ORIGINS` in `backend/app/main.py` **and** the SAM template's `CorsConfiguration`, then redeploy.
+- If you change CORS origins, update `ALLOWED_ORIGINS` in `core-backend/app/main.py` **and** the SAM template's `CorsConfiguration`, then redeploy.
 
 ---
 

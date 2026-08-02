@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+    --grid-color: rgba(0, 0, 0, 0.05);
+}
+
+body {
+    background-color: #fafafa;
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+}
+
+/* Custom scrollbar for brutalist feel */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #fafafa;
+    border-left: 2px solid black;
+}
+
+::-webkit-scrollbar-thumb {
+    background: black;
+    border: 2px solid #fafafa;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #333;
+}
