@@ -31,7 +31,7 @@ const ProjectsPage = () => {
         <div className="min-h-screen bg-[#fafafa] font-sans text-black selection:bg-yellow-400 overflow-x-hidden">
             <Navbar />
 
-            <main className="pt-20">
+            <main>
                 {/* 
                   Passing showViewAll={false} to hide the recursive button.
                   Passing isPage={true} to maybe modify header styling if needed.

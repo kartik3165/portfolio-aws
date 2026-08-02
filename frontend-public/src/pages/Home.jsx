@@ -5,11 +5,13 @@ import About from '../components/About';
 import Skills from '../components/Skills';
 import Projects from '../components/Projects';
 import Contact from '../components/Contact';
+import BlogCarousel from '../components/BlogCarousel';
 import { api } from '../api/client';
 
 const Home = () => {
     const containerRef = useRef(null);
     const [projects, setProjects] = useState([]);
+    const [blogs, setBlogs] = useState([]);
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -21,7 +23,17 @@ const Home = () => {
             }
         };
 
+        const fetchBlogs = async () => {
+            try {
+                const data = await api.getBlogs();
+                setBlogs(data || []);
+            } catch (err) {
+                console.error("Failed to load blogs:", err);
+            }
+        };
+
         fetchProjects();
+        fetchBlogs();
 
         const ctx = gsap.context(() => {
             // Floating Stickers Animation
@@ -47,6 +59,7 @@ const Home = () => {
             <About />
             <Skills />
             <Projects projects={projects.slice(0, 2)} />
+            <BlogCarousel blogs={blogs.slice(0, 3)} />
             <Contact />
 
             {/* GSAP Animated Stickers */}

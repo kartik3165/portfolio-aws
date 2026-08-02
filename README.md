@@ -16,6 +16,9 @@ Both frontends talk to the backend API. The API URL comes from `VITE_API_URL` (`
 - **Python** 3.10+ with `venv` available
 - **Docker** (for local DynamoDB)
 - **AWS CLI + SAM CLI**, configured (`aws configure`, region `ap-south-1`) — production only
+  - [AWS CLI installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+  - [SAM CLI installation guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+- **Cloudflare account** — for R2 (uploads) and Pages (hosting both frontends)
 
 ---
 
@@ -101,6 +104,8 @@ Save the **API base URL** (you need it for the frontends) and add the **`totp_se
 
 R2 credentials are **required** (uploads are part of the project) — have your Cloudflare R2 bucket ready before deploying; the script will re-prompt until you provide them.
 
+> First time? See [R2 bucket setup guide](https://developers.cloudflare.com/r2/get-started/) — you need the account ID, bucket, and an API token with read/write access to the bucket.
+
 ### 2. Admin CMS (Cloudflare Pages)
 
 ```bash
@@ -111,6 +116,8 @@ VITE_API_URL=https://<api-id>.execute-api.ap-south-1.amazonaws.com npm run build
 
 Deploy the `dist/` folder to Cloudflare Pages — or set `VITE_API_URL` as a Pages environment variable and build there. CORS already allows `admin.kanbs.me` / `portfolio-frontend-admin.pages.dev`.
 
+> First time? See the [Cloudflare Pages getting started guide](https://developers.cloudflare.com/pages/get-started/).
+
 ### 3. Frontend (Cloudflare Pages)
 
 ```bash
@@ -120,6 +127,8 @@ VITE_API_URL=https://<api-id>.execute-api.ap-south-1.amazonaws.com npm run build
 ```
 
 Same as admin: set `VITE_API_URL`, `npm run build`, deploy `dist/`.
+
+> First time? See the [Cloudflare Pages getting started guide](https://developers.cloudflare.com/pages/get-started/).
 
 ### 4. Production gotchas
 

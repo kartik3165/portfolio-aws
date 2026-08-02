@@ -51,7 +51,16 @@ const Navbar = () => {
         }
     }, [location]);
 
-    const navLinks = ['home', 'about', 'skills', 'projects', 'blog', 'contact'];
+    const navLinks = ['home', 'about', 'projects', 'blog'];
+
+    const getActiveId = () => {
+        const path = location.pathname;
+        if (path.startsWith('/about')) return 'about';
+        if (path.startsWith('/project')) return 'projects';
+        if (path.startsWith('/blog')) return 'blog';
+        return 'home';
+    };
+    const activeId = getActiveId();
 
     return (
         <nav className="fixed top-0 left-0 w-full z-50 bg-[#fafafa] border-b-[4px] border-black h-16 md:h-20 flex items-center px-4 md:px-10 justify-between">
@@ -67,7 +76,7 @@ const Navbar = () => {
                     <button
                         key={id}
                         onClick={() => handleNavigation(id)}
-                        className="font-bold uppercase text-sm hover:underline underline-offset-4"
+                        className={`font-bold uppercase text-sm hover:underline underline-offset-4 ${activeId === id ? 'bg-yellow-400 px-3 py-1 border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -rotate-1' : ''}`}
                     >
                         {id}
                     </button>
@@ -84,7 +93,7 @@ const Navbar = () => {
                         <button
                             key={id}
                             onClick={() => handleNavigation(id)}
-                            className="font-black text-4xl uppercase"
+                            className={`font-black text-4xl uppercase ${activeId === id ? 'text-yellow-500 underline underline-offset-8' : ''}`}
                         >
                             {id}
                         </button>

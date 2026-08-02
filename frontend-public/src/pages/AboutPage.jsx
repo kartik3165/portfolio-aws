@@ -66,9 +66,6 @@ const AboutPage = () => {
             <Navbar />
 
             <main className="pt-32 pb-24 px-4 md:px-10 max-w-7xl mx-auto">
-                <Link to="/" className="inline-flex md:hidden items-center gap-2 font-black mb-12 hover:underline uppercase text-sm tracking-widest">
-                    <ChevronLeft size={20} /> Back to Home
-                </Link>
 
                 <div className="about-header mb-16 grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
                     <div className="md:col-span-2">
