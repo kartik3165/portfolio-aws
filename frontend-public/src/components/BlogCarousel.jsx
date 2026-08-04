@@ -96,16 +96,6 @@ const BlogCarousel = ({ blogs }) => {
                     </div>
                 )}
 
-                {total > 0 && (
-                    <div className="flex justify-center mt-12">
-                        <Link
-                            to="/blog"
-                            className={`px-8 py-4 bg-black text-white text-xl font-black uppercase tracking-wider ${brutalBorder} shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:bg-yellow-400 hover:text-black hover:shadow-none hover:translate-y-1 transition-all flex items-center gap-3`}
-                        >
-                            View All Posts <ChevronRight size={24} />
-                        </Link>
-                    </div>
-                )}
             </div>
         </section>
     );

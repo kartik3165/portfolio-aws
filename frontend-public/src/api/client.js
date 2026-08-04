@@ -1,55 +1,72 @@
+import axios from 'axios';
+
 const API_URL = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : 'http://localhost:8000';
 
-// Helper to make API calls
-const apiCall = async (endpoint, options = {}) => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        },
-        credentials: 'omit', // No credentials for public site
-        ...options,
-    });
+export const publicClient = axios.create({
+    baseURL: API_URL,
+    withCredentials: false,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+export const authClient = axios.create({
+    baseURL: API_URL,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+let refreshPromise = null;
+
+const isAuthEndpoint = (url = '') =>
+    url.includes('/admin/login') ||
+    url.includes('/admin/refresh') ||
+    url.includes('/admin/logout') ||
+    url === '/admin/auth';
+
+authClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const { response, config } = error;
+        if (
+            !response ||
+            response.status !== 401 ||
+            isAuthEndpoint(config?.url) ||
+            config?._retried
+        ) {
+            return Promise.reject(error);
+        }
+
+        config._retried = true;
+        try {
+            refreshPromise = refreshPromise || authClient.post('/admin/refresh');
+            await refreshPromise;
+        } catch {
+            return Promise.reject(error);
+        } finally {
+            refreshPromise = null;
+        }
+
+        return authClient(config);
     }
-    return response.json();
-};
+);
 
 export const api = {
-    // Blogs
-    getBlogs: () => apiCall('/public/blog'),
-    getBlogBySlug: (slug) => apiCall(`/public/blog/${slug}`),
-
-    // Projects
-    getProjects: () => apiCall('/public/projects'),
-    getProjectBySlug: (slug) => apiCall(`/public/projects/${slug}`),
-    createProject: (data) => apiCall('/admin/projects', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    }),
-    updateProject: (slug, data) => apiCall(`/admin/projects/${slug}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    }),
-
-    // Comments
-    getComments: (blogId) => apiCall(`/public/comment/${blogId}`),
-    createComment: (blogId, data) => apiCall(`/public/comment/${blogId}`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-    }),
-
-    // Skills
-    getSkills: () => apiCall('/public/skill'),
-
-    // About Page Data
-    getExperience: () => apiCall('/public/experience'),
-    getResearchPapers: () => apiCall('/public/research_papers'),
-    getAchievements: () => apiCall('/public/achievements'),
-    getBio: () => apiCall('/public/bio'),
+    getBlogs: async () => (await publicClient.get('/public/blog')).data,
+    getBlogBySlug: async (slug) => (await publicClient.get(`/public/blog/${slug}`)).data,
+    getProjects: async () => (await publicClient.get('/public/projects')).data,
+    getProjectBySlug: async (slug) => (await publicClient.get(`/public/projects/${slug}`)).data,
+    getComments: async (blogId) => (await publicClient.get(`/public/comment/${blogId}`)).data,
+    createComment: async (blogId, data) => (await publicClient.post(`/public/comment/${blogId}`, data)).data,
+    getSkills: async () => (await publicClient.get('/public/skill')).data,
+    getExperience: async () => (await publicClient.get('/public/experience')).data,
+    getResearchPapers: async () => (await publicClient.get('/public/research_papers')).data,
+    getAchievements: async () => (await publicClient.get('/public/achievements')).data,
+    getBio: async () => (await publicClient.get('/public/bio')).data,
 };
+
+export default authClient;

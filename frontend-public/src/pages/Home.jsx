@@ -1,12 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import Hero from '../components/Hero';
-import About from '../components/About';
-import Skills from '../components/Skills';
-import Projects from '../components/Projects';
-import Contact from '../components/Contact';
-import BlogCarousel from '../components/BlogCarousel';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+
+const Hero = lazy(() => import('../components/Hero'));
+const About = lazy(() => import('../components/About'));
+const Skills = lazy(() => import('../components/Skills'));
+const Projects = lazy(() => import('../components/Projects'));
+const Contact = lazy(() => import('../components/Contact'));
+const BlogCarousel = lazy(() => import('../components/BlogCarousel'));
+
+const SectionFallback = ({ label, minHeight = 'min-h-[40vh]' }) => (
+    <section className={`${minHeight} flex items-center justify-center px-4`}>
+        <div className="border-[3px] border-black bg-white px-5 py-3 text-sm font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            Loading {label}
+        </div>
+    </section>
+);
 
 const Home = () => {
     const containerRef = useRef(null);
@@ -55,12 +66,34 @@ const Home = () => {
 
     return (
         <main className="pt-20" ref={containerRef}>
-            <Hero />
-            <About />
-            <Skills />
-            <Projects projects={projects.slice(0, 2)} />
-            <BlogCarousel blogs={blogs.slice(0, 3)} />
-            <Contact />
+            <Suspense fallback={<SectionFallback label="hero" minHeight="min-h-[70vh]" />}>
+                <Hero />
+            </Suspense>
+            <Suspense fallback={<SectionFallback label="about" />}>
+                <About />
+            </Suspense>
+            <Suspense fallback={<SectionFallback label="skills" />}>
+                <Skills />
+            </Suspense>
+            <Suspense fallback={<SectionFallback label="projects" />}>
+                <Projects projects={projects.slice(0, 2)} />
+            </Suspense>
+            <Suspense fallback={<SectionFallback label="blogs" />}>
+                <BlogCarousel blogs={blogs.slice(0, 3)} />
+            </Suspense>
+            {blogs.length > 0 && (
+                <div className="px-4 md:px-10 -mt-10 mb-24 flex justify-center">
+                    <Link
+                        to="/blog"
+                        className={`px-8 py-4 bg-black text-white text-xl font-black uppercase tracking-wider ${brutalBorder} shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:bg-yellow-400 hover:text-black hover:shadow-none hover:translate-y-1 transition-all flex items-center gap-3`}
+                    >
+                        See All Blogs <ArrowRight size={24} />
+                    </Link>
+                </div>
+            )}
+            <Suspense fallback={<SectionFallback label="contact" minHeight="min-h-[30vh]" />}>
+                <Contact />
+            </Suspense>
 
             {/* GSAP Animated Stickers */}
             <div className="fixed bottom-10 left-10 hidden xl:block z-50 pointer-events-none">
