@@ -1,11 +1,8 @@
-import logging
 from datetime import datetime
 
 from botocore.exceptions import ClientError
 
 from app.db.dynamo import skills_table
-
-logger = logging.getLogger(__name__)
 
 class SkillsRepo:
     def __init__(self):
@@ -22,7 +19,6 @@ class SkillsRepo:
         except ClientError as exc:
             error_code = exc.response.get("Error", {}).get("Code")
             if error_code == "ResourceNotFoundException":
-                logger.warning("Skills table is missing; returning an empty skills list")
                 return {"skills": []}
             raise
         item = res.get("Item")

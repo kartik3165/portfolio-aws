@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 from app.db.dynamo import blogs_table
 from app.schemas.blog import BlogCreate, BlogDelete, BlogUpdate
 from uuid import UUID
@@ -15,9 +16,15 @@ class BlogRepo:
         self.table = blogs_table()
 
     async def list_blogs(self, include_drafts: bool = False, email: str = None):
-        res = self.table.query(
-            KeyConditionExpression=Key("PK").eq("BLOG")
-        )
+        try:
+            res = self.table.query(
+                KeyConditionExpression=Key("PK").eq("BLOG")
+            )
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return []
+            raise
         items = res.get("Items", [])
         
         # Filter drafts if not permitted
@@ -32,18 +39,30 @@ class BlogRepo:
     async def get_blog(self, id_or_slug: str, email: str = None):
         from boto3.dynamodb.conditions import Attr
         # Try getting by ID first
-        res = self.table.get_item(
-            Key={"PK": "BLOG", "SK": f"BLOG#{id_or_slug}"} 
-        )
+        try:
+            res = self.table.get_item(
+                Key={"PK": "BLOG", "SK": f"BLOG#{id_or_slug}"}
+            )
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return None
+            raise
         item = res.get("Item")
         if item:
             return item
             
         # Try getting by slug
-        res = self.table.query(
-            KeyConditionExpression=Key("PK").eq("BLOG"),
-            FilterExpression=Attr("slug").eq(id_or_slug)
-        )
+        try:
+            res = self.table.query(
+                KeyConditionExpression=Key("PK").eq("BLOG"),
+                FilterExpression=Attr("slug").eq(id_or_slug)
+            )
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return None
+            raise
         items = res.get("Items", [])
         return items[0] if items else None
 

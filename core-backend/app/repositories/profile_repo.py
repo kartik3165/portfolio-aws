@@ -12,7 +12,6 @@ from app.db.keys import (
     sk_bio
 )
 
-
 class ProfileRepo:
     def __init__(self):
         self.table = profile_table()
@@ -28,7 +27,9 @@ class ProfileRepo:
             )
             return response.get("Items", [])
         except ClientError as e:
-            print(f"Error listing experience: {e}")
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return []
             return []
     
     async def create_experience(self, data: dict, email: str):
@@ -105,7 +106,9 @@ class ProfileRepo:
             )
             return response.get("Items", [])
         except ClientError as e:
-            print(f"Error listing papers: {e}")
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return []
             return []
 
     async def create_paper(self, data: dict, email: str):
@@ -182,7 +185,9 @@ class ProfileRepo:
             )
             return response.get("Items", [])
         except ClientError as e:
-            print(f"Error listing achievements: {e}")
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return []
             return []
 
     async def create_achievement(self, data: dict, email: str):
@@ -264,7 +269,9 @@ class ProfileRepo:
                 return item
             return {}
         except ClientError as e:
-            print(f"Error getting bio: {e}")
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                return {}
             return {}
 
     async def update_bio(self, data: dict, email: str):
@@ -279,5 +286,4 @@ class ProfileRepo:
             self.table.put_item(Item=item)
             return True
         except ClientError as e:
-            print(f"Error updating bio: {e}")
             return False

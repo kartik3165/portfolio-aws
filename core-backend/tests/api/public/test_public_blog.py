@@ -1,4 +1,6 @@
 from unittest.mock import patch, AsyncMock
+
+from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -72,3 +74,24 @@ def test_get_blog_not_found():
         
         assert response.status_code == 404
         assert response.json()["detail"] == "Blog not found"
+
+
+def test_all_blogs_missing_table_returns_empty_list():
+    missing_table_error = ClientError(
+        {
+            "Error": {
+                "Code": "ResourceNotFoundException",
+                "Message": "Cannot do operations on a non-existent table",
+            }
+        },
+        "Query",
+    )
+
+    with patch("app.repositories.blog_repo.blogs_table") as mock_table_factory:
+        mock_table = mock_table_factory.return_value
+        mock_table.query.side_effect = missing_table_error
+
+        response = client.get("/public/blog")
+
+        assert response.status_code == 200
+        assert response.json() == []
