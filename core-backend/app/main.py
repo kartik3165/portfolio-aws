@@ -15,6 +15,7 @@ from app.api.public.skills import router as public_skills
 from app.api.public.comment import router as public_comment
 from app.api.public.projects import router as public_projects
 from app.api.public.profile import router as public_profile
+from app.api.public.home import router as public_home
 
 
 app = FastAPI()
@@ -53,6 +54,7 @@ app.include_router(public_skills, prefix="/public")
 app.include_router(public_comment, prefix="/public")
 app.include_router(public_projects, prefix="/public")
 app.include_router(public_profile, prefix="/public")
+app.include_router(public_home, prefix="/public")
 
 
 from mangum import Mangum

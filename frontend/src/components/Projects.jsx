@@ -17,7 +17,7 @@ const Projects = ({ projects = [], showViewAll = true, loading = false }) => {
         const ctx = gsap.context(() => {
             gsap.from(".project-header", {
                 scrollTrigger: {
-                    trigger: "#projects",
+                    trigger: containerRef.current,
                     start: "top 80%",
                 },
                 y: 50,

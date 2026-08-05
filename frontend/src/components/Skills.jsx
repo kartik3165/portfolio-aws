@@ -2,42 +2,25 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
-import { api } from '../api/client';
-import { SkeletonSkillPills } from './Skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const Skills = () => {
+const DEFAULT_SKILLS = [
+    'Python', 'FastAPI', 'Django', 'REST APIs', 'AWS', 'Docker',
+    'DynamoDB', 'Redis', 'PostgreSQL', 'React', 'Git', 'CI/CD'
+];
+
+const Skills = ({ skills = [] }) => {
     const containerRef = useRef(null);
     const [zeroGravity, setZeroGravity] = useState(false);
-    const [skills, setSkills] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    // Fetch Skills
-    useEffect(() => {
-        const fetchSkills = async () => {
-            try {
-                const data = await api.getSkills();
-                setSkills(data.skills || []);
-            } catch (err) {
-                console.error("Failed to fetch skills:", err);
-                setError("Failed to load skills.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSkills();
-    }, []);
+    const visibleSkills = skills.length > 0 ? skills : DEFAULT_SKILLS;
 
     // Initial Entrance Animation
     useEffect(() => {
-        if (loading || skills.length === 0) return;
-
         const ctx = gsap.context(() => {
             gsap.from(".skill-box", {
                 scrollTrigger: {
-                    trigger: "#skills",
+                    trigger: containerRef.current,
                     start: "top 80%",
                 },
                 scale: 0.5,
@@ -49,12 +32,10 @@ const Skills = () => {
             });
         }, containerRef);
         return () => ctx.revert();
-    }, [loading, skills]);
+    }, [skills]);
 
     // Zero Gravity Animation Effect
     useEffect(() => {
-        if (loading || skills.length === 0) return;
-
         const ctx = gsap.context(() => {
             if (zeroGravity) {
                 gsap.utils.toArray(".skill-box").forEach(box => {
@@ -81,7 +62,7 @@ const Skills = () => {
             }
         }, containerRef);
         return () => ctx.revert();
-    }, [zeroGravity, loading, skills]);
+    }, [zeroGravity, skills]);
 
     const onSkillEnter = (e) => {
         gsap.to(e.currentTarget, {
@@ -133,7 +114,6 @@ const Skills = () => {
 
                     <button
                         onClick={() => setZeroGravity(!zeroGravity)}
-                        disabled={loading}
                         className={`flex items-center gap-3 px-4 py-2 bg-white ${brutalBorder} ${brutalShadowSmall} active:translate-y-1 active:shadow-none transition-all disabled:opacity-50`}
                     >
                         <span className="font-bold uppercase text-sm md:text-base">Zero Gravity</span>
@@ -141,32 +121,18 @@ const Skills = () => {
                     </button>
                 </div>
 
-                {loading ? (
-                    <SkeletonSkillPills />
-                ) : error ? ( // Handle error state
-                    <div className="flex justify-center py-20">
-                        <p className="text-xl font-bold text-red-500 uppercase">Error: {error}</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-wrap gap-4 md:gap-6 relative z-10 p-6">
-                        {skills.length > 0 ? (
-                            skills.map((skill, index) => (
-                                <div
-                                    key={index}
-                                    onMouseEnter={onSkillEnter}
-                                    onMouseLeave={onSkillLeave}
-                                    className={`skill-box px-6 py-4 bg-white font-black text-lg md:text-2xl ${brutalBorder} ${brutalShadowSmall} hover:bg-yellow-300 transition-colors cursor-pointer select-none`}
-                                >
-                                    {skill}
-                                </div>
-                            ))
-                        ) : (
-                            <div className="w-full text-center py-10">
-                                <p className="text-xl font-bold text-gray-400 uppercase">No tools found.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <div className="flex flex-wrap gap-4 md:gap-6 relative z-10 p-6">
+                    {visibleSkills.map((skill, index) => (
+                        <div
+                            key={index}
+                            onMouseEnter={onSkillEnter}
+                            onMouseLeave={onSkillLeave}
+                            className={`skill-box px-6 py-4 bg-white font-black text-lg md:text-2xl ${brutalBorder} ${brutalShadowSmall} hover:bg-yellow-300 transition-colors cursor-pointer select-none`}
+                        >
+                            {skill}
+                        </div>
+                    ))}
+                </div>
             </div>
         </section>
     );

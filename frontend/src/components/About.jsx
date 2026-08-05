@@ -1,37 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Briefcase, Zap, Activity, Award, Github, Terminal, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { api } from '../api/client';
-import { Skeleton, SkeletonText } from './Skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const About = () => {
+const About = ({ bio = null }) => {
     const containerRef = useRef(null);
-    const [bio, setBio] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchBio = async () => {
-            try {
-                const data = await api.getBio();
-                setBio(data?.data?.bio || {});
-            } catch (err) {
-                console.error("Failed to fetch bio:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchBio();
-    }, []);
 
     useEffect(() => {
         const ctx = gsap.context(() => {
             gsap.from(".about-box", {
                 scrollTrigger: {
-                    trigger: "#about",
+                    trigger: containerRef.current,
                     start: "top 75%",
                 },
                 x: -50,
@@ -57,9 +39,7 @@ const About = () => {
                     </h2>
                     <div className={`bg-white p-8 md:p-12 ${brutalBorder} ${brutalShadow}`}>
                         <div className="text-xl md:text-2xl font-bold leading-relaxed mb-6 whitespace-pre-wrap">
-                            {loading ? (
-                                <SkeletonText lines={5} />
-                            ) : bio?.about_intro ? bio.about_intro : (
+                            {bio?.about_intro ? bio.about_intro : (
                                 <>
                                     <p className="mb-6">
                                         Computer Engineering student at <span className="underline decoration-yellow-400 decoration-4">ZCOER Pune</span> with a strong interest in building scalable web applications and designing efficient backend systems. I enjoy turning ideas into practical, real-world technology solutions that create meaningful impact.
@@ -76,16 +56,7 @@ const About = () => {
                         </Link>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                            {loading ? (
-                                <>
-                                    {[0, 1, 2, 3].map((i) => (
-                                        <div key={i} className="flex items-center gap-2">
-                                            <Skeleton className="h-5 w-5 rounded-none" />
-                                            <Skeleton className="h-5 w-40" />
-                                        </div>
-                                    ))}
-                                </>
-                            ) : bio?.highlights && bio.highlights.length > 0 ? (
+                            {bio?.highlights && bio.highlights.length > 0 ? (
                                 bio.highlights.map((highlight, index) => (
                                     <div key={index} className="flex items-center gap-2 font-black">
                                         <Zap size={18} className={index % 2 === 0 ? "text-yellow-500" : "text-blue-600"} /> {highlight}

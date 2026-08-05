@@ -21,36 +21,22 @@ const SectionFallback = ({ label, minHeight = 'min-h-[40vh]' }) => (
 
 const Home = () => {
     const containerRef = useRef(null);
-    const [projects, setProjects] = useState([]);
-    const [blogs, setBlogs] = useState([]);
-    const [loadingProjects, setLoadingProjects] = useState(true);
-    const [loadingBlogs, setLoadingBlogs] = useState(true);
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProjects = async () => {
+        const fetchHomeData = async () => {
             try {
-                const data = await api.getProjects();
-                setProjects(data || []);
+                const res = await api.getHomeData();
+                setData(res?.data || {});
             } catch (err) {
-                console.error("Failed to load projects:", err);
+                console.error("Failed to load home data:", err);
             } finally {
-                setLoadingProjects(false);
+                setLoading(false);
             }
         };
 
-        const fetchBlogs = async () => {
-            try {
-                const data = await api.getBlogs();
-                setBlogs(data || []);
-            } catch (err) {
-                console.error("Failed to load blogs:", err);
-            } finally {
-                setLoadingBlogs(false);
-            }
-        };
-
-        fetchProjects();
-        fetchBlogs();
+        fetchHomeData();
 
         const ctx = gsap.context(() => {
             // Floating Stickers Animation
@@ -70,22 +56,25 @@ const Home = () => {
     const brutalBorder = "border-[3px] md:border-[4px] border-black";
     const brutalShadowSmall = "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]";
 
+    const projects = data?.projects || [];
+    const blogs = data?.blogs || [];
+
     return (
         <main className="pt-20" ref={containerRef}>
             <Suspense fallback={<SectionFallback label="hero" minHeight="min-h-[70vh]" />}>
-                <Hero />
+                <Hero heroImage={data?.bio?.hero_image} />
             </Suspense>
             <Suspense fallback={<SectionFallback label="about" />}>
-                <About />
+                <About bio={data?.bio} />
             </Suspense>
             <Suspense fallback={<SectionFallback label="skills" />}>
-                <Skills />
+                <Skills skills={data?.skills || []} />
             </Suspense>
             <Suspense fallback={<SectionFallback label="projects" />}>
-                <Projects projects={projects.slice(0, 2)} loading={loadingProjects} />
+                <Projects projects={projects.slice(0, 2)} loading={loading} />
             </Suspense>
             <Suspense fallback={<SectionFallback label="blogs" />}>
-                <BlogCarousel blogs={blogs.slice(0, 3)} loading={loadingBlogs} />
+                <BlogCarousel blogs={blogs.slice(0, 3)} loading={loading} />
             </Suspense>
             {blogs.length > 0 && (
                 <div className="px-4 md:px-10 -mt-10 mb-24 flex justify-center">

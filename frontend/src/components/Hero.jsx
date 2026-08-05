@@ -1,35 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 import gsap from 'gsap';
-import { api } from '../api/client';
 
-const Hero = () => {
+const Hero = ({ heroImage = 'https://img.reportgenai.in/profile.webp' }) => {
     const containerRef = useRef(null);
-    const [heroImage, setHeroImage] = useState('https://img.reportgenai.in/profile.webp'); // fallback default
 
-    useEffect(() => {
-        const fetchBio = async () => {
-            try {
-                const bioData = await api.getBio();
-                if (bioData?.data?.bio?.hero_image) {
-                    setHeroImage(bioData.data.bio.hero_image);
-                }
-            } catch (err) {
-                console.error("Failed to fetch hero image:", err);
-                // Keep default fallback image
-            }
-        };
-
-        fetchBio();
-    }, []);
-
-    useEffect(() => {
+    useLayoutEffect(() => {
         const ctx = gsap.context(() => {
             const tl = gsap.timeline();
             tl.from(".hero-badge", { y: -50, opacity: 0, duration: 0.5, ease: "back.out(1.7)" })
                 .from(".hero-title", { x: -100, opacity: 0, duration: 0.8, ease: "power4.out" }, "-=0.2")
                 .from(".hero-p", { y: 30, opacity: 0, duration: 0.6 }, "-=0.4")
-                .from(".hero-image", { x: 100, opacity: 0, duration: 0.8, ease: "power2.out" }, "-=0.6")
+                .fromTo(".hero-image",
+                    { x: 100, opacity: 0 },
+                    { x: 0, opacity: 1, duration: 0.8, ease: "power2.out", clearProps: "opacity" },
+                    "-=0.6")
                 .from(".hero-btn", { scale: 0, opacity: 0, stagger: 0.2, duration: 0.5, ease: "back.out(2)" }, "-=0.2");
 
             // Continuous Floating Animation

@@ -58,7 +58,7 @@ authClient.interceptors.response.use(
 const CACHE_TTL_MS = 60_000;
 const getCache = new Map();
 
-const cachedGet = (url) => {
+const cachedGet = (url, ttl = CACHE_TTL_MS) => {
     const now = Date.now();
     const hit = getCache.get(url);
 
@@ -68,7 +68,7 @@ const cachedGet = (url) => {
     const promise = publicClient
         .get(url)
         .then(({ data }) => {
-            getCache.set(url, { data, promise: null, expiresAt: Date.now() + CACHE_TTL_MS });
+            getCache.set(url, { data, promise: null, expiresAt: Date.now() + ttl });
             return data;
         })
         .catch((err) => {
@@ -81,6 +81,7 @@ const cachedGet = (url) => {
 };
 
 export const api = {
+    getHomeData: () => cachedGet('/public/home', 5 * 60_000),
     getBlogs: () => cachedGet('/public/blog'),
     getBlogBySlug: (slug) => cachedGet(`/public/blog/${slug}`),
     getProjects: () => cachedGet('/public/projects'),
