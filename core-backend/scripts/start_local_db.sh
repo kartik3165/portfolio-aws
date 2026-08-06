@@ -21,9 +21,9 @@ ENDPOINT="http://localhost:$PORT"
 
 # Does the existing container use a persistent setup already?
 is_persistent() {
-  docker inspect "$NAME" >/dev/null 2>&1 \
-    && ! docker inspect --format '{{.Config.Cmd}}' "$NAME" | grep -q -- '-inMemory' \
-    && docker inspect --format '{{index .Mounts 0.Type}}' "$NAME" | grep -q 'volume'
+  docker inspect "$NAME" >/dev/null 2>&1 || return 1
+  docker inspect --format '{{join .Config.Cmd ","}}' "$NAME" | grep -q -- '-inMemory' && return 1
+  docker inspect --format '{{len .Mounts}}' "$NAME" | grep -q '^[1-9]'
 }
 
 if docker inspect "$NAME" >/dev/null 2>&1; then
@@ -45,8 +45,8 @@ else
     -p "$PORT:8000" \
     -v "$VOLUME:$DB_PATH" \
     --restart unless-stopped \
-"$IMAGE" -jar DynamoDBLocal.jar -dbPath "$DB_PATH" >/dev/null
-  fi
+    "$IMAGE" -jar DynamoDBLocal.jar -dbPath "$DB_PATH" >/dev/null
+fi
 
 # Wait for the endpoint to accept requests
 for i in {1..30}; do

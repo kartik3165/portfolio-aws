@@ -26,6 +26,7 @@ backend/
 │   ├── services/              # storage.py (R2 uploads)
 │   └── main.py                # FastAPI entry (also the Lambda handler)
 ├── scripts/
+│   ├── start_local_db.sh       # Start persistent dynamodb-local container + create tables
 │   ├── init_local_db.sh       # Create tables in dynamodb-local
 │   ├── init_ssm.sh            # Create SSM secrets for deployment
 │   └── seed_bio.py            # Seed bio into ProfileTable
