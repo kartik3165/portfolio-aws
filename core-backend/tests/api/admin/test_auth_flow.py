@@ -262,3 +262,79 @@ class TestTOTPRotate:
             "/admin/auth/totp/confirm", json={"totp_code": _valid_totp_code(new_secret)}
         )
         assert resp.status_code == 200
+
+
+class TestEdgeBranches:
+    def test_init_without_bootstrap_configured(self, fake_table, client, monkeypatch):
+        monkeypatch.setattr(settings, "BOOTSTRAP_SECRET", "")
+        resp = client.post("/admin/auth/init", headers={"x-bootstrap-secret": "x"})
+        assert resp.status_code == 500
+
+    def test_login_totp_creds_email_mismatch(self, initialized, client):
+        from app.core.security import create_preauth_token
+        preauth = create_preauth_token({"sub": "other@x.com"})
+        resp = client.post(
+            "/admin/login/totp", json={"preauth_token": preauth, "totp_code": "123456"}
+        )
+        assert resp.status_code == 401
+
+    def test_login_totp_totp_not_configured(self, initialized, fake_table, client):
+        # remove the totp_secret from the stored credentials
+        item = fake_table.items[("ADMIN#CREDENTIALS", "METADATA")]
+        item.pop("totp_secret", None)
+        preauth = client.post(
+            "/admin/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+        ).json()["preauth_token"]
+        resp = client.post(
+            "/admin/login/totp", json={"preauth_token": preauth, "totp_code": "123456"}
+        )
+        assert resp.status_code == 500
+
+    def test_refresh_token_missing_subject(self, client):
+        from app.core.security import create_refresh_token
+        client.cookies.set("refresh_token", create_refresh_token({}))
+        resp = client.post("/admin/refresh")
+        assert resp.status_code == 401
+
+    def test_refresh_creds_email_mismatch(self, initialized, client):
+        from app.core.security import create_refresh_token
+        client.cookies.set("refresh_token", create_refresh_token({"sub": "ghost@x.com"}))
+        resp = client.post("/admin/refresh")
+        assert resp.status_code == 401
+
+    def test_refresh_revoked_version(self, initialized, client, fake_table):
+        # refresh token with old version (0) while creds are at version 1
+        from app.core.security import create_refresh_token
+        fake_table.items[("ADMIN#CREDENTIALS", "METADATA")]["token_version"] = 1
+        client.cookies.set("refresh_token", create_refresh_token({"sub": ADMIN_EMAIL, "ver": 0}))
+        resp = client.post("/admin/refresh")
+        assert resp.status_code == 401
+
+    def test_logout_with_invalid_refresh_token(self, initialized, client):
+        # invalid refresh cookie -> verify_token raises, caught and ignored
+        client.cookies.set("refresh_token", "garbage-not-a-token")
+        resp = client.post("/admin/logout")
+        assert resp.status_code == 200
+
+    def test_auth_endpoint_creds_not_initialized(self, fake_table, client):
+        from app.core.security import create_access_token
+        client.cookies.set("access_token", create_access_token({"sub": ADMIN_EMAIL}))
+        resp = client.get("/admin/auth")
+        assert resp.status_code == 404
+
+    def test_rotate_creds_not_initialized(self, fake_table, client):
+        from app.core.security import create_access_token
+        client.cookies.set("access_token", create_access_token({"sub": ADMIN_EMAIL}))
+        resp = client.post("/admin/auth/totp/rotate", json={"totp_code": "123456"})
+        assert resp.status_code == 404
+
+    def test_confirm_creds_not_initialized(self, fake_table, client):
+        from app.core.security import create_access_token
+        client.cookies.set("access_token", create_access_token({"sub": ADMIN_EMAIL}))
+        resp = client.post("/admin/auth/totp/confirm", json={"totp_code": "123456"})
+        assert resp.status_code == 404
+
+    def test_rotate_invalid_current_code(self, logged_in, initialized):
+        # wrong code for rotate -> 401 (covers "not current_secret" short-circuit)
+        resp = logged_in.post("/admin/auth/totp/rotate", json={"totp_code": "000000"})
+        assert resp.status_code == 401

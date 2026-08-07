@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Request, status
 from jose import JWTError, jwt
@@ -29,7 +29,7 @@ def _encode(data: dict) -> str:
 
 
 def _base_claims(token_type: str, ttl: timedelta) -> dict:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     return {
         "iat": now,
         "exp": now + ttl,

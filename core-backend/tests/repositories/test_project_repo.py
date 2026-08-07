@@ -36,6 +36,22 @@ class TestProjectRepo:
             items = run(ProjectRepo().list_projects(include_drafts=True))
             assert [i["id"] for i in items] == ["p2"]
 
+    def test_list_projects_error(self):
+        from app.repositories.project_repo import ProjectRepo
+        with patch("app.repositories.project_repo.projects_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.query.side_effect = _client_error("SomeError")
+            assert run(ProjectRepo().list_projects()) == []
+
+    def test_get_project_error(self):
+        from app.repositories.project_repo import ProjectRepo
+        from app.repositories.project_repo import ClientError
+        from app.repositories.project_repo import Key, Attr
+        with patch("app.repositories.project_repo.projects_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.side_effect = _client_error("SomeError")
+            assert run(ProjectRepo().get_project("p1")) is None
+
     def test_get_project_by_id(self):
         from app.repositories.project_repo import ProjectRepo
         with patch("app.repositories.project_repo.projects_table") as tbl_factory:

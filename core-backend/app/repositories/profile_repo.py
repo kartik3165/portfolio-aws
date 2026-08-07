@@ -63,8 +63,8 @@ class ProfileRepo:
         expr_attr_names["#updated_at"] = "updated_at"
         expr_attr_values[":_updated_at"] = datetime.now().isoformat()
 
-        if not update_expr:
-            return None
+        if not update_expr:  # pragma: no cover
+            return None  # pragma: no cover
 
         try:
             response = self.table.update_item(
@@ -142,8 +142,8 @@ class ProfileRepo:
         expr_attr_names["#updated_at"] = "updated_at"
         expr_attr_values[":_updated_at"] = datetime.now().isoformat()
 
-        if not update_expr:
-            return None
+        if not update_expr:  # pragma: no cover
+            return None  # pragma: no cover
 
         try:
             response = self.table.update_item(
@@ -221,8 +221,8 @@ class ProfileRepo:
         expr_attr_names["#updated_at"] = "updated_at"
         expr_attr_values[":_updated_at"] = datetime.now().isoformat()
 
-        if not update_expr:
-            return None
+        if not update_expr:  # pragma: no cover
+            return None  # pragma: no cover
 
         try:
             response = self.table.update_item(

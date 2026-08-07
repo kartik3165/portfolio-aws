@@ -95,3 +95,27 @@ def test_all_blogs_missing_table_returns_empty_list():
 
         assert response.status_code == 200
         assert response.json() == []
+
+
+def test_all_blogs_client_error_returns_404():
+    err = ClientError({"Error": {"Code": "SomeOtherError", "Message": "boom"}}, "Query")
+    with patch("app.api.public.blog.BlogRepo") as MockRepo:
+        mock_instance = MockRepo.return_value
+        mock_instance.list_blogs = AsyncMock(side_effect=err)
+
+        response = client.get("/public/blog")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Unable to fetch Blogs"
+
+
+def test_get_blog_client_error_returns_404():
+    err = ClientError({"Error": {"Code": "SomeError", "Message": "boom"}}, "GetItem")
+    with patch("app.api.public.blog.BlogRepo") as MockRepo:
+        mock_instance = MockRepo.return_value
+        mock_instance.get_blog = AsyncMock(side_effect=err)
+
+        response = client.get("/public/blog/some-slug")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Blog not found"

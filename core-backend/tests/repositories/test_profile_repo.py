@@ -34,6 +34,13 @@ class TestProfileRepo:
             tbl.query.side_effect = _client_error("ResourceNotFoundException")
             assert run(ProfileRepo().list_experience()) == []
 
+    def test_list_experience_other_error(self):
+        from app.repositories.profile_repo import ProfileRepo
+        with patch(f"{BASE}.profile_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.query.side_effect = _client_error("SomeOtherCode")
+            assert run(ProfileRepo().list_experience()) == []
+
     def test_create_experience(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory, \
@@ -52,12 +59,13 @@ class TestProfileRepo:
             got = run(ProfileRepo().update_experience("e1", {"role": "new"}, "a@x"))
             assert got["role"] == "new"
 
-    def test_update_experience_empty_updates(self):
+    def test_update_experience_with_all_none_updates(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory:
             tbl = tbl_factory.return_value
-            got = run(ProfileRepo().update_experience("e1", {}, "a@x"))
-            assert got is None
+            tbl.update_item.return_value = {"Attributes": {"id": "e1", "role": "new"}}
+            got = run(ProfileRepo().update_experience("e1", {"role": None, "company": None}, "a@x"))
+            assert got["role"] == "new"
 
     def test_update_experience_not_found(self):
         from app.repositories.profile_repo import ProfileRepo
@@ -96,6 +104,13 @@ class TestProfileRepo:
             tbl.query.side_effect = _client_error("ResourceNotFoundException")
             assert run(ProfileRepo().list_papers()) == []
 
+    def test_list_papers_other_error(self):
+        from app.repositories.profile_repo import ProfileRepo
+        with patch(f"{BASE}.profile_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.query.side_effect = _client_error("SomeOtherCode")
+            assert run(ProfileRepo().list_papers()) == []
+
     def test_create_paper(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory, \
@@ -113,11 +128,13 @@ class TestProfileRepo:
             got = run(ProfileRepo().update_paper("p1", {"title": "new"}, "a@x"))
             assert got["title"] == "new"
 
-    def test_update_paper_empty(self):
+    def test_update_paper_with_all_none_updates(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory:
             tbl = tbl_factory.return_value
-            assert run(ProfileRepo().update_paper("p1", {}, "a@x")) is None
+            tbl.update_item.return_value = {"Attributes": {"id": "p1", "title": "new"}}
+            got = run(ProfileRepo().update_paper("p1", {"title": None}, "a@x"))
+            assert got["title"] == "new"
 
     def test_update_paper_not_found(self):
         from app.repositories.profile_repo import ProfileRepo
@@ -152,6 +169,13 @@ class TestProfileRepo:
             tbl.query.side_effect = _client_error("ResourceNotFoundException")
             assert run(ProfileRepo().list_achievements()) == []
 
+    def test_list_achievements_other_error(self):
+        from app.repositories.profile_repo import ProfileRepo
+        with patch(f"{BASE}.profile_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.query.side_effect = _client_error("SomeOtherCode")
+            assert run(ProfileRepo().list_achievements()) == []
+
     def test_create_achievement(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory, \
@@ -169,11 +193,13 @@ class TestProfileRepo:
             got = run(ProfileRepo().update_achievement("a1", {"title": "new"}, "a@x"))
             assert got["title"] == "new"
 
-    def test_update_achievement_empty(self):
+    def test_update_achievement_with_all_none_updates(self):
         from app.repositories.profile_repo import ProfileRepo
         with patch(f"{BASE}.profile_table") as tbl_factory:
             tbl = tbl_factory.return_value
-            assert run(ProfileRepo().update_achievement("a1", {}, "a@x")) is None
+            tbl.update_item.return_value = {"Attributes": {"id": "a1", "title": "new"}}
+            got = run(ProfileRepo().update_achievement("a1", {"title": None}, "a@x"))
+            assert got["title"] == "new"
 
     def test_update_achievement_not_found(self):
         from app.repositories.profile_repo import ProfileRepo
@@ -216,6 +242,13 @@ class TestProfileRepo:
         with patch(f"{BASE}.profile_table") as tbl_factory:
             tbl = tbl_factory.return_value
             tbl.get_item.side_effect = _client_error("ResourceNotFoundException")
+            assert run(ProfileRepo().get_bio()) == {}
+
+    def test_get_bio_other_error(self):
+        from app.repositories.profile_repo import ProfileRepo
+        with patch(f"{BASE}.profile_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.side_effect = _client_error("SomeOtherCode")
             assert run(ProfileRepo().get_bio()) == {}
 
     def test_update_bio_success(self):

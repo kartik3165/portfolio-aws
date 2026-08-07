@@ -108,6 +108,23 @@ class TestBlogRepo:
             with pytest.raises(ClientError):
                 run(BlogRepo().get_blog("x"))
 
+    def test_get_blog_by_slug_query_resource_not_found(self):
+        from app.repositories.blog_repo import BlogRepo
+        with patch("app.repositories.blog_repo.blogs_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {}
+            tbl.query.side_effect = _client_error("ResourceNotFoundException")
+            assert run(BlogRepo().get_blog("my-slug")) is None
+
+    def test_get_blog_by_slug_query_other_error_raises(self):
+        from app.repositories.blog_repo import BlogRepo
+        with patch("app.repositories.blog_repo.blogs_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {}
+            tbl.query.side_effect = _client_error("SomeError")
+            with pytest.raises(ClientError):
+                run(BlogRepo().get_blog("my-slug"))
+
     def test_create_blog(self):
         from app.repositories.blog_repo import BlogRepo
         with patch("app.repositories.blog_repo.blogs_table") as tbl_factory, \

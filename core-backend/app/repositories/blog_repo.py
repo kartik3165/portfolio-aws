@@ -120,7 +120,7 @@ class BlogRepo:
         
         add_field("updated_at", now)
 
-        if not update_expr_parts:
+        if not update_expr_parts:  # pragma: no cover
             return await self.get_blog(blog_id, email)
 
         # Resolve ID if slug is passed
