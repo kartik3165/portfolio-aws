@@ -27,7 +27,7 @@ async def all_blogs():
 async def get_blog(slug: str):
     repo = BlogRepo()
     try:
-        data = await repo.get_blog(slug)
+        data = await repo.get_blog(slug, published_only=True)
         if not data:
             raise HTTPException(status_code=404, detail="Blog not found")
         return data

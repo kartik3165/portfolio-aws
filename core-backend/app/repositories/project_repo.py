@@ -27,7 +27,7 @@ class ProjectRepo:
             print(f"Error listing projects: {e}")
             return []
 
-    async def get_project(self, id_or_slug: str, email: str = None):
+    async def get_project(self, id_or_slug: str, email: str = None, published_only: bool = False):
         try:
             response = self.table.get_item(
                 Key={
@@ -37,6 +37,8 @@ class ProjectRepo:
             )
             item = response.get('Item')
             if item:
+                if published_only and item.get("is_draft", False):
+                    return None
                 return item
 
             response = self.table.query(
@@ -44,7 +46,12 @@ class ProjectRepo:
                 FilterExpression=Attr("slug").eq(id_or_slug)
             )
             items = response.get('Items', [])
-            return items[0] if items else None
+            if not items:
+                return None
+            item = items[0]
+            if published_only and item.get("is_draft", False):
+                return None
+            return item
             
         except ClientError as e:
             print(f"Error getting project {id_or_slug}: {e}")

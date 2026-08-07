@@ -14,6 +14,7 @@ class AdminAuthInit(BaseModel):
     message: str
     email: str
     totp_secret: str
+    backup_codes: list[str] = []
 
 
 class AdminLoginRequest(BaseModel):
@@ -23,9 +24,9 @@ class AdminLoginRequest(BaseModel):
 
 
 class PreauthLoginRequest(BaseModel):
-    """Request model for admin login (step 2: preauth proof + TOTP code)"""
+    """Request model for admin login (step 2: preauth proof + TOTP or backup code)"""
     preauth_token: str
-    totp_code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    totp_code: str = Field(min_length=6, max_length=8, pattern=r"^[0-9A-Z]{6,8}$")
 
 
 class TOTPRotateRequest(BaseModel):

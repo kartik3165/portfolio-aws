@@ -60,6 +60,21 @@ class TestProjectRepo:
             item = run(ProjectRepo().get_project("p1"))
             assert item["name"] == "x"
 
+    def test_get_project_by_id_masks_draft(self):
+        from app.repositories.project_repo import ProjectRepo
+        with patch("app.repositories.project_repo.projects_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {"Item": {"id": "p1", "name": "draft", "is_draft": True}}
+            assert run(ProjectRepo().get_project("p1", published_only=True)) is None
+
+    def test_get_project_by_slug_masks_draft(self):
+        from app.repositories.project_repo import ProjectRepo
+        with patch("app.repositories.project_repo.projects_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {}
+            tbl.query.return_value = {"Items": [{"id": "p1", "slug": "d", "is_draft": True}]}
+            assert run(ProjectRepo().get_project("d", published_only=True)) is None
+
     def test_get_project_by_slug(self):
         from app.repositories.project_repo import ProjectRepo
         with patch("app.repositories.project_repo.projects_table") as tbl_factory:

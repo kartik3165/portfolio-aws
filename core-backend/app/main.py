@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from starlette.types import ASGIApp, Receive, Scope, Send
+
 from app.api.admin.blog import router as admin_blog
 from app.api.admin.skills import router as admin_skills
 from app.api.admin.projects import router as admin_projects
@@ -19,6 +21,40 @@ from app.api.public.home import router as public_home
 
 
 app = FastAPI()
+
+
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+
+class SecurityHeadersMiddleware:
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message: dict) -> None:
+            if message["type"] == "http.response.start":
+                message.setdefault("headers", [])
+                existing = {k.lower() for k, v in message["headers"]}
+                message["headers"] += [
+                    (k.encode("latin-1"), v.encode("latin-1"))
+                    for k, v in SECURITY_HEADERS.items()
+                    if k.lower() not in existing
+                ]
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 ALLOWED_ORIGINS = [

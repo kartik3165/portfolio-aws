@@ -30,6 +30,48 @@ def test_verify_token_invalid():
     assert exc.value.status_code == 401
 
 
+def test_verify_token_rejects_wrong_audience():
+    import jwt as pyjwt
+    import datetime
+    now = datetime.datetime.now(datetime.timezone.utc)
+    tok = pyjwt.encode(
+        {
+            "sub": "a@x",
+            "type": "access",
+            "iss": security.JWT_ISSUER,
+            "aud": "wrong-audience",
+            "iat": now,
+            "exp": now + datetime.timedelta(minutes=5),
+        },
+        security._jwt_secret(),
+        algorithm=security.JWT_ALGORITHM,
+    )
+    with pytest.raises(HTTPException) as exc:
+        security.verify_token(tok, "access")
+    assert exc.value.status_code == 401
+
+
+def test_verify_token_rejects_wrong_issuer():
+    import jwt as pyjwt
+    import datetime
+    now = datetime.datetime.now(datetime.timezone.utc)
+    tok = pyjwt.encode(
+        {
+            "sub": "a@x",
+            "type": "access",
+            "iss": "some-other-service",
+            "aud": security.JWT_AUDIENCE,
+            "iat": now,
+            "exp": now + datetime.timedelta(minutes=5),
+        },
+        security._jwt_secret(),
+        algorithm=security.JWT_ALGORITHM,
+    )
+    with pytest.raises(HTTPException) as exc:
+        security.verify_token(tok, "access")
+    assert exc.value.status_code == 401
+
+
 def test_get_current_email(client, mocker):
     mocker.patch("app.api.admin.auth.AuthRepo.get_credentials", new_callable=lambda: AsyncMock(return_value={"email": "me@x.com"}))
     access = security.create_access_token({"sub": "me@x.com"})

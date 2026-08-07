@@ -2,11 +2,13 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Request, status
-from jose import JWTError, jwt
+import jwt as pyjwt
 
 from app.core.config import settings
 
 JWT_ALGORITHM = settings.JWT_ALGORITHM
+JWT_ISSUER = settings.JWT_ISSUER
+JWT_AUDIENCE = settings.JWT_AUDIENCE
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 PREAUTH_TOKEN_EXPIRE_MINUTES = 5
@@ -25,7 +27,8 @@ def _jwt_secret() -> str:
 
 
 def _encode(data: dict) -> str:
-    return jwt.encode(data, _jwt_secret(), algorithm=JWT_ALGORITHM)
+    claims = {"iss": JWT_ISSUER, "aud": JWT_AUDIENCE, **data}
+    return pyjwt.encode(claims, _jwt_secret(), algorithm=JWT_ALGORITHM)
 
 
 def _base_claims(token_type: str, ttl: timedelta) -> dict:
@@ -60,10 +63,17 @@ def create_preauth_token(data: dict) -> str:
 
 
 def verify_token(token: str, expected_type: str = "access") -> dict:
-    """Verify and decode JWT token, enforcing token type"""
+    """Verify and decode JWT token, enforcing token type + issuer/audience"""
     try:
-        payload = jwt.decode(token, _jwt_secret(), algorithms=[JWT_ALGORITHM])
-    except JWTError:
+        payload = pyjwt.decode(
+            token,
+            _jwt_secret(),
+            algorithms=[JWT_ALGORITHM],
+            audience=JWT_AUDIENCE,
+            issuer=JWT_ISSUER,
+            options={"require": ["exp", "iat", "iss", "aud"]},
+        )
+    except pyjwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
     if payload.get("type") != expected_type:

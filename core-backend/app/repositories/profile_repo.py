@@ -266,6 +266,8 @@ class ProfileRepo:
                 # remove internal keys
                 item.pop("PK", None)
                 item.pop("SK", None)
+                item.pop("updated_by", None)
+                item.pop("updated_at", None)
                 return item
             return {}
         except ClientError as e:

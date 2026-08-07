@@ -32,6 +32,28 @@ ALLOWED_EXTENSIONS = {
 
 FOLDER_PATTERN = re.compile(r"^[\w-]{1,50}$")
 
+# Leading bytes used to confirm a file's content matches its claimed extension
+_EXT_MAGIC = {
+    "jpg": (b"\xff\xd8\xff",),
+    "jpeg": (b"\xff\xd8\xff",),
+    "png": (b"\x89PNG\r\n\x1a\n",),
+    "gif": (b"GIF87a", b"GIF89a"),
+    "ico": (b"\x00\x00\x01\x00",),
+    "pdf": (b"%PDF",),
+    "webm": (b"\x1a\x45\xdf\xa3",),
+}
+
+
+def _matches_magic(content: bytes, ext: str) -> bool:
+    if ext == "webp":
+        return len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+    if ext == "avif":
+        return len(content) >= 12 and content[4:8] == b"ftyp" and b"avif" in content[8:20]
+    if ext == "mp4":
+        return len(content) >= 12 and content[4:8] == b"ftyp"
+    prefixes = _EXT_MAGIC.get(ext)
+    return bool(prefixes) and content.startswith(prefixes)
+
 
 def _validate_folder(folder: str) -> None:
     if not FOLDER_PATTERN.fullmatch(folder or ""):
@@ -80,6 +102,11 @@ async def upload_file(
         content = await file.read()
         if len(content) > MAX_UPLOAD_BYTES:
             raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+
+        if not _matches_magic(content, ext):
+            raise HTTPException(
+                status_code=400, detail="File content does not match its extension"
+            )
 
         service = StorageService()
         key = f"{folder}/{uuid7()}.{ext}"

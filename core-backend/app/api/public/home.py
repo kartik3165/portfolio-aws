@@ -10,6 +10,16 @@ from app.repositories.blog_repo import BlogRepo
 router = APIRouter(prefix="/home", tags=["Home"])
 
 
+_INTERNAL_KEYS = ("PK", "SK", "created_at", "updated_at", "updated_by")
+
+
+def _strip(item):
+    if isinstance(item, dict):
+        for key in _INTERNAL_KEYS:
+            item.pop(key, None)
+    return item
+
+
 @router.get("")
 async def get_home_data():
     bio, skills, projects, blogs = await asyncio.gather(
@@ -20,9 +30,9 @@ async def get_home_data():
     )
     return {
         "data": {
-            "bio": bio,
+            "bio": _strip(bio),
             "skills": skills.get("skills", []),
-            "projects": projects,
-            "blogs": blogs,
+            "projects": [_strip(p) for p in projects],
+            "blogs": [_strip(b) for b in blogs],
         }
     }

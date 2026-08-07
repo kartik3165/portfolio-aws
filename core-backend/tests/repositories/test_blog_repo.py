@@ -76,6 +76,21 @@ class TestBlogRepo:
             item = run(BlogRepo().get_blog("1"))
             assert item == {"id": "1", "title": "x"}
 
+    def test_get_blog_by_id_masks_draft(self):
+        from app.repositories.blog_repo import BlogRepo
+        with patch("app.repositories.blog_repo.blogs_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {"Item": {"id": "1", "title": "draft", "is_draft": True}}
+            assert run(BlogRepo().get_blog("1", published_only=True)) is None
+
+    def test_get_blog_by_slug_masks_draft(self):
+        from app.repositories.blog_repo import BlogRepo
+        with patch("app.repositories.blog_repo.blogs_table") as tbl_factory:
+            tbl = tbl_factory.return_value
+            tbl.get_item.return_value = {}
+            tbl.query.return_value = {"Items": [{"id": "1", "slug": "d", "is_draft": True}]}
+            assert run(BlogRepo().get_blog("d", published_only=True)) is None
+
     def test_get_blog_by_slug(self):
         from app.repositories.blog_repo import BlogRepo
         with patch("app.repositories.blog_repo.blogs_table") as tbl_factory:

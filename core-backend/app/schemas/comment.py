@@ -1,5 +1,5 @@
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Comment(BaseModel):
     id: UUID
@@ -10,5 +10,5 @@ class Comment(BaseModel):
 
 
 class CommentCreate(BaseModel):
-    name: str
-    body: str
+    name: str = Field(min_length=1, max_length=80)
+    body: str = Field(min_length=1, max_length=4000)

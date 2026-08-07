@@ -38,9 +38,12 @@ Globals:
         PROJECTS_TABLE: !Ref ProjectsTable
         PROFILE_TABLE: !Ref ProfileTable
         JWT_SECRET: '{{resolve:ssm:/portfolio/JWT_SECRET}}'
+        JWT_ISSUER: portfolio-api
+        JWT_AUDIENCE: portfolio-admin
         ADMIN_EMAIL: '{{resolve:ssm:/portfolio/ADMIN_EMAIL}}'
         ADMIN_PASSWORD: '{{resolve:ssm:/portfolio/ADMIN_PASSWORD}}'
         BOOTSTRAP_SECRET: '{{resolve:ssm:/portfolio/BOOTSTRAP_SECRET}}'
+        TOTP_ENCRYPTION_KEY: '{{resolve:ssm:/portfolio/TOTP_ENCRYPTION_KEY}}'
         R2_ACCOUNT_ID: '{{resolve:ssm:/portfolio/R2_ACCOUNT_ID}}'
         R2_ACCESS_KEY_ID: '{{resolve:ssm:/portfolio/R2_ACCESS_KEY_ID}}'
         R2_SECRET_ACCESS_KEY: '{{resolve:ssm:/portfolio/R2_SECRET_ACCESS_KEY}}'
@@ -74,6 +77,40 @@ Resources:
         'POST /admin/login/totp':
           ThrottlingBurstLimit: 5
           ThrottlingRateLimit: 10
+        'POST /public/comment/{blogId}':
+          ThrottlingBurstLimit: 20
+          ThrottlingRateLimit: 50
+
+  ApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: portfolio-api-web-acl
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: portfolio-api-web-acl
+      Rules:
+        - Name: RateLimitPerIp
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 1000
+              AggregateKeyType: IP
+          Action:
+            Block: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitPerIp
+
+  ApiWebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${ServerlessHttpApi.ApiId}/stages/${ServerlessHttpApi.Stage}"
+      WebACLArn: !GetAtt ApiWebAcl.Arn
 
   BackendFunction:
     Type: AWS::Serverless::Function

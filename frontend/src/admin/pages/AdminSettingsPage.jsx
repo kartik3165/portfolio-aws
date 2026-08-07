@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
-import { getCurrentAdmin, rotateTOTP, confirmTOTP } from '../../api/auth';
+import { getCurrentAdmin, rotateTOTP, confirmTOTP, regenerateBackupCodes } from '../../api/auth';
 
 const AdminSettingsPage = () => {
     const [currentEmail, setCurrentEmail] = useState('');
@@ -17,6 +17,11 @@ const AdminSettingsPage = () => {
     const [otpauthUri, setOtpauthUri] = useState('');
     const [qrDataUrl, setQrDataUrl] = useState('');
     const [totpLoading, setTotpLoading] = useState(false);
+
+    // Recovery codes state
+    const [recoveryCodes, setRecoveryCodes] = useState([]);
+    const [recoveryLoading, setRecoveryLoading] = useState(false);
+    const [recoveryRevealed, setRecoveryRevealed] = useState(false);
 
     const fetchCurrentEmail = async () => {
         setFetching(true);
@@ -78,6 +83,22 @@ const AdminSettingsPage = () => {
             setError(err.response?.data?.detail || 'Invalid code for the new device.');
         } finally {
             setTotpLoading(false);
+        }
+    };
+
+    const handleRegenerateCodes = async () => {
+        setRecoveryLoading(true);
+        setError('');
+        setSuccess('');
+        try {
+            const result = await regenerateBackupCodes();
+            setRecoveryCodes(result.backup_codes || []);
+            setRecoveryRevealed(true);
+            setSuccess('New recovery codes generated. Store them somewhere safe.');
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Failed to generate recovery codes.');
+        } finally {
+            setRecoveryLoading(false);
         }
     };
 
@@ -229,6 +250,44 @@ const AdminSettingsPage = () => {
                                             </button>
                                         </div>
                                     </form>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Recovery codes */}
+                        <div className="mt-8 border-t border-gray-200 pt-6">
+                            <h4 className="text-md font-semibold text-gray-900 mb-2">
+                                Recovery Codes
+                            </h4>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Single-use codes let you log in if you lose your authenticator app.
+                                Each code works once; regenerate them anytime. Store them securely.
+                            </p>
+
+                            {!recoveryRevealed ? (
+                                <button
+                                    onClick={handleRegenerateCodes}
+                                    disabled={recoveryLoading}
+                                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50"
+                                >
+                                    {recoveryLoading ? 'Generating...' : 'Generate Recovery Codes'}
+                                </button>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-2 max-w-md">
+                                        {recoveryCodes.map((code) => (
+                                            <code
+                                                key={code}
+                                                className="font-mono text-sm bg-gray-100 border border-gray-200 rounded px-3 py-2 text-center"
+                                            >{code}</code>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => setRecoveryRevealed(false)}
+                                        className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    >
+                                        Hide Codes
+                                    </button>
                                 </div>
                             )}
                         </div>

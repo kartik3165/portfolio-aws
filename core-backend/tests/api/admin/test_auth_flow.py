@@ -180,6 +180,55 @@ class TestLoginFlow:
         assert resp.status_code == 401
 
 
+class TestBackupCodeRecovery:
+    def _preauth(self, client):
+        return client.post(
+            "/admin/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+        ).json()["preauth_token"]
+
+    def test_login_with_backup_code(self, initialized, client):
+        codes = initialized["backup_codes"]
+        assert codes, "init should return backup codes"
+        resp = client.post(
+            "/admin/login/totp",
+            json={"preauth_token": self._preauth(client), "totp_code": codes[0]},
+        )
+        assert resp.status_code == 200
+        assert "access_token" in resp.cookies
+
+    def test_backup_code_is_single_use(self, initialized, client):
+        codes = initialized["backup_codes"]
+        first = client.post(
+            "/admin/login/totp",
+            json={"preauth_token": self._preauth(client), "totp_code": codes[0]},
+        )
+        assert first.status_code == 200
+        # same code cannot be used again
+        second = client.post(
+            "/admin/login/totp",
+            json={"preauth_token": self._preauth(client), "totp_code": codes[0]},
+        )
+        assert second.status_code == 401
+
+    def test_regenerate_backup_codes_requires_auth(self, initialized, client):
+        resp = client.post("/admin/backup-codes")
+        assert resp.status_code == 401
+
+    def test_regenerate_backup_codes_returns_new_codes(self, logged_in, initialized):
+        old = set(initialized["backup_codes"])
+        resp = logged_in.post("/admin/backup-codes")
+        assert resp.status_code == 200
+        new = resp.json()["backup_codes"]
+        assert len(new) > 0
+        assert old.isdisjoint(new)
+
+    def test_regenerate_backup_codes_creds_not_initialized(self, fake_table, client):
+        from app.core.security import create_access_token
+        client.cookies.set("access_token", create_access_token({"sub": ADMIN_EMAIL}))
+        resp = client.post("/admin/backup-codes")
+        assert resp.status_code == 404
+
+
 class TestSession:
     def test_auth_endpoint_requires_cookie(self, initialized, client):
         assert client.get("/admin/auth").status_code == 401
@@ -204,6 +253,22 @@ class TestSession:
         assert logged_in.post("/admin/logout").status_code == 200
         resp = logged_in.post("/admin/refresh")
         assert resp.status_code == 401
+
+    def test_refresh_reuse_detected_and_revokes(self, logged_in):
+        # Capture the login-issued refresh token before it is rotated
+        cookie_header = logged_in.headers["Cookie"]
+        old_refresh = next(
+            p.split("=", 1)[1]
+            for p in cookie_header.split(";")
+            if p.strip().startswith("refresh_token=")
+        )
+        first = logged_in.post("/admin/refresh")
+        assert first.status_code == 200
+        # Replaying the pre-rotation token is treated as reuse and revokes all
+        logged_in.headers["Cookie"] = f"refresh_token={old_refresh}"
+        resp = logged_in.post("/admin/refresh")
+        assert resp.status_code == 401
+        assert "reuse" in resp.json()["detail"]
 
     def test_logout_without_cookie(self, client):
         assert client.post("/admin/logout").status_code == 200

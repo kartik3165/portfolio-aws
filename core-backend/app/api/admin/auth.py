@@ -1,4 +1,5 @@
 import asyncio
+import hmac
 
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -61,7 +62,7 @@ async def init_admin_credentials(bootstrap_secret: str = Header(..., alias="x-bo
             status_code=500,
             detail="BOOTSTRAP_SECRET environment variable must be configured before init",
         )
-    if bootstrap_secret != settings.BOOTSTRAP_SECRET:
+    if not hmac.compare_digest(bootstrap_secret, settings.BOOTSTRAP_SECRET):
         raise HTTPException(status_code=401, detail="Invalid bootstrap secret")
 
     repo = AuthRepo()
@@ -84,6 +85,7 @@ async def init_admin_credentials(bootstrap_secret: str = Header(..., alias="x-bo
         "message": "Admin credentials initialized successfully",
         "email": result["email"],
         "totp_secret": result["totp_secret"],
+        "backup_codes": result["backup_codes"],
     }
 
 
@@ -141,9 +143,17 @@ async def admin_login_with_totp(payload: PreauthLoginRequest):
             status_code=500, detail="TOTP is not configured. Contact support to re-initialize."
         )
 
-    if not repo.verify_totp(totp_secret, payload.totp_code):
+    code = payload.totp_code
+    mfa_ok = False
+    if code.isdigit():
+        mfa_ok = repo.verify_totp(totp_secret, code)
+    else:
+        # Recovery: a single-use backup code is accepted in place of the OTP
+        mfa_ok = await repo.consume_backup_code(code)
+
+    if not mfa_ok:
         await repo.record_failed_attempt()
-        raise HTTPException(status_code=401, detail="Invalid TOTP code")
+        raise HTTPException(status_code=401, detail="Invalid TOTP or backup code")
 
     await repo.clear_failed_attempts()
 
@@ -176,8 +186,20 @@ async def refresh_tokens(refresh_token: str = Cookie(None)):
     if payload.get("ver") != creds.get("token_version", 0):
         raise HTTPException(status_code=401, detail="Refresh token revoked")
 
+    # Reuse detection: a presented refresh token whose id differs from the most
+    # recently issued one means a previously rotated token is being replayed.
+    last_jti = creds.get("last_refresh_jti")
+    if last_jti and last_jti != payload.get("jti"):
+        await repo.revoke_tokens(email)
+        raise HTTPException(
+            status_code=401,
+            detail="Refresh token reuse detected; all sessions revoked",
+        )
+
     access_token = create_access_token({"sub": email})
     new_refresh_token = create_refresh_token({"sub": email, "ver": creds.get("token_version", 0)})
+    new_jti = verify_token(new_refresh_token, "refresh")["jti"]
+    await repo.set_last_refresh_jti(email, new_jti)
 
     response = JSONResponse(content={"message": "Token refreshed"})
     _set_auth_cookies(response, access_token, new_refresh_token)
@@ -255,5 +277,18 @@ async def confirm_totp_secret(
     if not repo.verify_totp(pending_secret, payload.totp_code):
         raise HTTPException(status_code=401, detail="Invalid TOTP code for the new device")
 
-    await repo.confirm_pending_totp_secret(creds["email"])
+    await repo.confirm_pending_totp_secret(creds["email"], pending_secret)
     return {"message": "TOTP secret updated successfully"}
+
+
+@router.post("/backup-codes", response_model=dict)
+async def regenerate_backup_codes(email: str = Depends(get_current_email)):
+    """Regenerate single-use recovery codes (requires an existing valid session)"""
+    repo = AuthRepo()
+    creds = await repo.get_credentials()
+    if not creds:
+        raise HTTPException(status_code=404, detail="Admin credentials not initialized")
+
+    codes = repo.generate_backup_codes()
+    await repo.replace_backup_codes(creds["email"], codes)
+    return {"backup_codes": codes}

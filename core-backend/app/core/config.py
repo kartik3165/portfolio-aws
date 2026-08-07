@@ -16,8 +16,14 @@ class Settings(BaseSettings):
     # Security
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
+    JWT_ISSUER: str = "portfolio-api"
+    JWT_AUDIENCE: str = "portfolio-admin"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15 # 15 minutes
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7 # 7 days
+
+    # Optional Fernet key (32-byte urlsafe-base64). When set, the TOTP secret,
+    # pending TOTP secret, and backup-code material are encrypted at rest.
+    TOTP_ENCRYPTION_KEY: str = ""
 
     # Admin Credentials
     ADMIN_EMAIL: str

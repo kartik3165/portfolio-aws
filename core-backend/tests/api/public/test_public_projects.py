@@ -69,7 +69,7 @@ def test_get_project_by_slug_success():
         
         assert response.status_code == 200
         assert response.json() == mock_project
-        mock_instance.get_project.assert_called_once_with(slug)
+        mock_instance.get_project.assert_called_once_with(slug, published_only=True)
 
 def test_get_project_not_found():
     slug = "nonexistent"

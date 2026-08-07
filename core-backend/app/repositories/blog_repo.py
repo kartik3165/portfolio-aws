@@ -36,7 +36,7 @@ class BlogRepo:
                 item["slug"] = item["id"]
         return items
 
-    async def get_blog(self, id_or_slug: str, email: str = None):
+    async def get_blog(self, id_or_slug: str, email: str = None, published_only: bool = False):
         from boto3.dynamodb.conditions import Attr
         # Try getting by ID first
         try:
@@ -50,9 +50,9 @@ class BlogRepo:
             raise
         item = res.get("Item")
         if item:
+            if published_only and item.get("is_draft", False):
+                return None
             return item
-            
-        # Try getting by slug
         try:
             res = self.table.query(
                 KeyConditionExpression=Key("PK").eq("BLOG"),
@@ -64,7 +64,12 @@ class BlogRepo:
                 return None
             raise
         items = res.get("Items", [])
-        return items[0] if items else None
+        if not items:
+            return None
+        item = items[0]
+        if published_only and item.get("is_draft", False):
+            return None
+        return item
 
     async def create_blog(self, blog: dict, email: str):
         now = datetime.now().isoformat()

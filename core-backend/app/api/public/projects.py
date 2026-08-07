@@ -16,7 +16,7 @@ async def get_projects():
 @router.get("/{slug}", response_model=ProjectDetail)
 async def get_project(slug: str):
     repo = ProjectRepo()
-    project = await repo.get_project(slug)
+    project = await repo.get_project(slug, published_only=True)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project

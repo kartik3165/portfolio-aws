@@ -90,4 +90,13 @@ export const confirmTOTP = async (totpCode) => {
     return handleResponse(response);
 };
 
+/**
+ * Regenerate single-use recovery codes (requires a valid session)
+ * @returns {Promise<{backup_codes: string[]}>}
+ */
+export const regenerateBackupCodes = async () => {
+    const response = await client.post('/admin/backup-codes');
+    return handleResponse(response);
+};
+
 export default client;

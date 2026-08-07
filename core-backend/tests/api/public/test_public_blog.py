@@ -61,7 +61,7 @@ def test_get_blog_by_slug_success():
         
         assert response.status_code == 200
         assert response.json() == mock_blog
-        mock_instance.get_blog.assert_called_once_with(slug)
+        mock_instance.get_blog.assert_called_once_with(slug, published_only=True)
 
 def test_get_blog_not_found():
     slug = "nonexistent"
