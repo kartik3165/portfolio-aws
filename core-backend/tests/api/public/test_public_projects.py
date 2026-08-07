@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -19,7 +19,7 @@ def test_get_projects_success():
 
     with patch("app.api.public.projects.ProjectRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.list_projects.return_value = mock_projects
+        mock_instance.list_projects = AsyncMock(return_value=mock_projects)
 
         response = client.get("/public/projects")
         
@@ -63,7 +63,7 @@ def test_get_project_by_slug_success():
 
     with patch("app.api.public.projects.ProjectRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.get_project.return_value = mock_project
+        mock_instance.get_project = AsyncMock(return_value=mock_project)
 
         response = client.get(f"/public/projects/{slug}")
         
@@ -76,7 +76,7 @@ def test_get_project_not_found():
 
     with patch("app.api.public.projects.ProjectRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.get_project.return_value = None
+        mock_instance.get_project = AsyncMock(return_value=None)
 
         response = client.get(f"/public/projects/{slug}")
         

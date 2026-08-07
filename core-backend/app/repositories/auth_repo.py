@@ -77,7 +77,7 @@ class AuthRepo:
 
     def generate_totp_secret(self) -> str:
         """Generate a new TOTP secret"""
-        return TOTP.random_base32()
+        return random_base32()
 
     def provisioning_uri(self, email: str, secret: str, issuer: str = "AdminCMS") -> str:
         return TOTP(secret).provisioning_uri(name=email, issuer_name=issuer)

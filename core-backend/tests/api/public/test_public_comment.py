@@ -13,18 +13,27 @@ def test_get_comments_success():
             "body": "Nice blog",
             "date": "2023-01-01",
             "timestamp": "1234567890"
+        },
+        {
+            "id": "c2",
+            "name": "User 2",
+            "body": "Older",
+            "date": "2023-01-01",
+            "timestamp": "1234567800"
         }
     ]
 
     with patch("app.api.public.comment.CommentRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.list_comments.return_value = mock_comments
+        mock_instance.list_comments = AsyncMock(return_value=mock_comments)
 
         response = client.get(f"/public/comment/{blog_id}")
-        
+
         assert response.status_code == 200
-        assert response.json() == mock_comments
-        # Assert called with UUID object
+        # comments should be sorted ascending by timestamp
+        data = response.json()
+        expected = sorted(mock_comments, key=lambda x: x["timestamp"])
+        assert data == expected
         from uuid import UUID
         mock_instance.list_comments.assert_called_once_with(UUID(blog_id))
 
@@ -44,10 +53,10 @@ def test_add_comment_success():
 
     with patch("app.api.public.comment.CommentRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.create_comment.return_value = mock_comment
+        mock_instance.create_comment = AsyncMock(return_value=mock_comment)
 
         response = client.post(f"/public/comment/{blog_id}", json=payload)
-        
+
         assert response.status_code == 200
         assert response.json() == mock_comment
         mock_instance.create_comment.assert_called_once()

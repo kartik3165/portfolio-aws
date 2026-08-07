@@ -1,5 +1,6 @@
 
 import pytest
+import asyncio
 from unittest.mock import MagicMock
 from app.repositories.blog_repo import BlogRepo
 from app.repositories.project_repo import ProjectRepo
@@ -54,13 +55,13 @@ def test_project_repo_filters_drafts(mocker):
     repo = ProjectRepo()
     
     # Test default behavior
-    items = repo.list_projects(include_drafts=False)
+    items = asyncio.run(repo.list_projects(include_drafts=False))
     ids = [i["id"] for i in items]
     assert "p1" in ids
     assert "p2" not in ids
     
     # Test admin behavior
-    items_all = repo.list_projects(include_drafts=True)
+    items_all = asyncio.run(repo.list_projects(include_drafts=True))
     ids_all = [i["id"] for i in items_all]
     assert "p1" in ids_all
     assert "p2" in ids_all

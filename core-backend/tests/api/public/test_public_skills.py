@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
@@ -11,7 +11,7 @@ def test_get_skills_success():
 
     with patch("app.api.public.skills.SkillsRepo") as MockRepo:
         mock_instance = MockRepo.return_value
-        mock_instance.get_skills.return_value = mock_skills
+        mock_instance.get_skills = AsyncMock(return_value=mock_skills)
 
         response = client.get("/public/skill")
         
