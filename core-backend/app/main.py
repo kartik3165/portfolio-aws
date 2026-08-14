@@ -1,24 +1,23 @@
 from fastapi import FastAPI
-
 from fastapi.middleware.cors import CORSMiddleware
-
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.api.admin.blog import router as admin_blog
-from app.api.admin.skills import router as admin_skills
-from app.api.admin.projects import router as admin_projects
-from app.api.admin.upload import router as admin_upload
-from app.api.admin.profile import router as admin_profile
-from app.api.admin.comment import router as admin_comment
 from app.api.admin.auth import router as admin_auth
-
+from app.api.admin.blog import router as admin_blog
+from app.api.admin.comment import router as admin_comment
+from app.api.admin.profile import router as admin_profile
+from app.api.admin.projects import router as admin_projects
+from app.api.admin.skills import router as admin_skills
+from app.api.admin.upload import router as admin_upload
 from app.api.public.blog import router as public_blog
-from app.api.public.skills import router as public_skills
 from app.api.public.comment import router as public_comment
-from app.api.public.projects import router as public_projects
-from app.api.public.profile import router as public_profile
 from app.api.public.home import router as public_home
-
+from app.api.public.profile import router as public_profile
+from app.api.public.projects import router as public_projects
+from app.api.public.skills import router as public_skills
+from app.core.config import settings
+from app.middleware.rate_limit import RateLimitMiddleware
+from app.repositories.rate_limit_repo import RateLimitStore
 
 app = FastAPI()
 
@@ -75,6 +74,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "x-bootstrap-secret"],
 )
+
+app.add_middleware(RateLimitMiddleware, store=RateLimitStore(settings.RATE_LIMIT_TABLE or None))
 
 
 app.include_router(admin_blog, prefix="/admin")

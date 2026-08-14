@@ -18,6 +18,9 @@ Parameters:
   ProfileTable:
     Type: String
     Default: ProfileTable
+  RateLimitsTable:
+    Type: String
+    Default: RateLimitsTable
 
 Globals:
   Function:
@@ -37,24 +40,25 @@ Globals:
         SKILL_TABLE: !Ref SkillsTable
         PROJECTS_TABLE: !Ref ProjectsTable
         PROFILE_TABLE: !Ref ProfileTable
-        JWT_SECRET: '{{resolve:ssm:/portfolio/JWT_SECRET}}'
+        RATE_LIMIT_TABLE: !Ref RateLimitsTable
+        JWT_SECRET_PARAM: /portfolio/JWT_SECRET
         JWT_ISSUER: portfolio-api
         JWT_AUDIENCE: portfolio-admin
-        ADMIN_EMAIL: '{{resolve:ssm:/portfolio/ADMIN_EMAIL}}'
-        ADMIN_PASSWORD: '{{resolve:ssm:/portfolio/ADMIN_PASSWORD}}'
-        BOOTSTRAP_SECRET: '{{resolve:ssm:/portfolio/BOOTSTRAP_SECRET}}'
-        TOTP_ENCRYPTION_KEY: '{{resolve:ssm:/portfolio/TOTP_ENCRYPTION_KEY}}'
-        R2_ACCOUNT_ID: '{{resolve:ssm:/portfolio/R2_ACCOUNT_ID}}'
-        R2_ACCESS_KEY_ID: '{{resolve:ssm:/portfolio/R2_ACCESS_KEY_ID}}'
-        R2_SECRET_ACCESS_KEY: '{{resolve:ssm:/portfolio/R2_SECRET_ACCESS_KEY}}'
-        R2_BUCKET_NAME: '{{resolve:ssm:/portfolio/R2_BUCKET_NAME}}'
-        R2_PUBLIC_BASE_URL: '{{resolve:ssm:/portfolio/R2_PUBLIC_BASE_URL}}'
+        ADMIN_EMAIL_PARAM: /portfolio/ADMIN_EMAIL
+        ADMIN_PASSWORD_PARAM: /portfolio/ADMIN_PASSWORD
+        BOOTSTRAP_SECRET_PARAM: /portfolio/BOOTSTRAP_SECRET
+        TOTP_ENCRYPTION_KEY_PARAM: /portfolio/TOTP_ENCRYPTION_KEY
+        R2_ACCOUNT_ID_PARAM: /portfolio/R2_ACCOUNT_ID
+        R2_ACCESS_KEY_ID_PARAM: /portfolio/R2_ACCESS_KEY_ID
+        R2_SECRET_ACCESS_KEY_PARAM: /portfolio/R2_SECRET_ACCESS_KEY
+        R2_BUCKET_NAME_PARAM: /portfolio/R2_BUCKET_NAME
+        R2_PUBLIC_BASE_URL_PARAM: /portfolio/R2_PUBLIC_BASE_URL
 
 Resources:
   ServerlessHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: Prod
+      StageName: '$default'
       CorsConfiguration:
         AllowOrigins:
           - https://admin.kanbs.me
@@ -81,36 +85,24 @@ Resources:
           ThrottlingBurstLimit: 20
           ThrottlingRateLimit: 50
 
-  ApiWebAcl:
-    Type: AWS::WAFv2::WebACL
+  RateLimitsDynamoTable:
+    Type: AWS::DynamoDB::Table
     Properties:
-      Name: portfolio-api-web-acl
-      Scope: REGIONAL
-      DefaultAction:
-        Allow: {}
-      VisibilityConfig:
-        SampledRequestsEnabled: true
-        CloudWatchMetricsEnabled: true
-        MetricName: portfolio-api-web-acl
-      Rules:
-        - Name: RateLimitPerIp
-          Priority: 1
-          Statement:
-            RateBasedStatement:
-              Limit: 1000
-              AggregateKeyType: IP
-          Action:
-            Block: {}
-          VisibilityConfig:
-            SampledRequestsEnabled: true
-            CloudWatchMetricsEnabled: true
-            MetricName: RateLimitPerIp
-
-  ApiWebAclAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${ServerlessHttpApi.ApiId}/stages/${ServerlessHttpApi.Stage}"
-      WebACLArn: !GetAtt ApiWebAcl.Arn
+      TableName: !Ref RateLimitsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: expires_at
 
   BackendFunction:
     Type: AWS::Serverless::Function
@@ -135,6 +127,14 @@ Resources:
             TableName: !Ref ProjectsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref ProfileTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RateLimitsTable
+        - Statement:
+            - Sid: SsmReadPortfolioParameters
+              Effect: Allow
+              Action:
+                - ssm:GetParameters
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/portfolio/*"
 
 Outputs:
   ApiUrl:

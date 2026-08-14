@@ -6,7 +6,7 @@ resolve_s3 = true
 s3_prefix = "portfolio-backend"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "BlogsTable=\"BlogsTable\" CommentsTable=\"BlogCommentsTable\" SkillsTable=\"SkillsTable\" ProjectsTable=\"ProjectsTable\" ProfileTable=\"ProfileTable\" UsersTable=\"UsersTable\""
+parameter_overrides = "BlogsTable=\"BlogsTable\" CommentsTable=\"BlogCommentsTable\" SkillsTable=\"SkillsTable\" ProjectsTable=\"ProjectsTable\" ProfileTable=\"ProfileTable\" RateLimitsTable=\"RateLimitsTable\""
 image_repositories = []
 
 [default.global.parameters]
