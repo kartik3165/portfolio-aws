@@ -13,6 +13,13 @@ const SNIPPETS = {
     image: '![Alt Text](https://example.com/image.jpg)',
     code: '`inline code`',
     codeblock: '```javascript\n// Code block\nconsole.log("Hello");\n```',
+    codeblockLn: '```javascript ln\n// Code block with line numbers\nfor (let i = 0; i < 10; i++) {\n    console.log(i);\n}\n```',
+    calloutNote: '> [!NOTE]\n> Useful information that users should know.\n',
+    calloutTip: '> [!TIP]\n> Helpful advice for going further.\n',
+    calloutWarning: '> [!WARNING]\n> Something that needs urgent attention.\n',
+    mathInline: 'Inline math: $E = mc^2$',
+    mathBlock: '$$\nE = mc^2\n$$\n',
+    video: 'https://youtu.be/YOUR_VIDEO_ID',
     table: '| Header 1 | Header 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |',
     hr: '---',
     full: `# Sample Markdown Document
@@ -123,7 +130,15 @@ const MarkdownToolbar = () => {
             <div className="w-px bg-gray-300 mx-1"></div>
             <ToolButton label="Code" snippetKey="code" title="Inline Code" />
             <ToolButton label="{ }" snippetKey="codeblock" title="Code Block" />
+            <ToolButton label="{ }+n" snippetKey="codeblockLn" title="Code Block with Line Numbers" />
             <ToolButton label="---" snippetKey="hr" title="Horizontal Rule" />
+            <div className="w-px bg-gray-300 mx-1"></div>
+            <ToolButton label="Note" snippetKey="calloutNote" title="Note Callout" />
+            <ToolButton label="Tip" snippetKey="calloutTip" title="Tip Callout" />
+            <ToolButton label="Warn" snippetKey="calloutWarning" title="Warning Callout" />
+            <ToolButton label="$x$" snippetKey="mathInline" title="Inline Math" />
+            <ToolButton label="$$" snippetKey="mathBlock" title="Math Block" />
+            <ToolButton label="Video" snippetKey="video" title="YouTube / Vimeo Embed" />
             <div className="flex-1"></div>
             <ToolButton label="Full Template" snippetKey="full" title="Copy Full Sample Document" />
         </div>

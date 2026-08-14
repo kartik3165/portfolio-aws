@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { api } from '../api/client';
 import MarkdownRenderer from '../components/MarkdownRenderer';
+import TableOfContents from '../components/TableOfContents';
 import useScrollTracking from "../hooks/useScrollTracking";
 import { Skeleton, SkeletonText } from '../components/Skeleton';
 
@@ -163,7 +164,7 @@ const ProjectDetailPage = () => {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-3 mb-2">
                             <span className={`px-4 py-1 ${project.color} font-bold uppercase text-xs md:text-sm ${brutalBorder}`}>
-                                {project.tech[0]?.name || "Project"}
+                                {project.tech?.[0]?.name || "Project"}
                             </span>
                         </div>
 
@@ -314,44 +315,6 @@ const ProjectDetailPage = () => {
                             )}
                         </section>
 
-                        {/* Architecture Diagram */}
-                        {(project.architecture || project.architectureImage) && (
-                            <section className="reveal-section">
-                                <h3 className="text-3xl font-black uppercase mb-8 flex items-center gap-3">
-                                    <Layers size={32} /> System Architecture
-                                </h3>
-
-                                {project.architectureImage ? (
-                                    <div
-                                        className={`bg-white p-4 md:p-8 ${brutalBorder} ${brutalShadow} cursor-pointer hover:scale-[1.01] transition-transform`}
-                                        onClick={() => setSelectedImage(project.architectureImage)}
-                                    >
-                                        <img
-                                            src={project.architectureImage}
-                                            alt="System Architecture"
-                                            className="w-full h-auto object-contain"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className={`bg-white p-8 md:p-12 ${brutalBorder} flex flex-wrap items-center justify-center gap-4 md:gap-8`}>
-                                        {/* Simple Flow Visualization */}
-                                        {project.architecture.map((node, i) => (
-                                            <React.Fragment key={i}>
-                                                <div className="flex flex-col items-center gap-2 group">
-                                                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-100 border-2 border-black flex items-center justify-center text-center p-2 rounded-lg group-hover:-translate-y-1 transition-transform">
-                                                        <span className="font-bold text-sm md:text-base">{node}</span>
-                                                    </div>
-                                                </div>
-                                                {i < project.architecture.length - 1 && (
-                                                    <ArrowRight className="text-gray-400 rotate-90 md:rotate-0" size={24} />
-                                                )}
-                                            </React.Fragment>
-                                        ))}
-                                    </div>
-                                )}
-                            </section>
-                        )}
-
                         {/* Challenges & Learnings */}
                         <section className="reveal-section grid grid-cols-1 md:grid-cols-2 gap-8">
                             {project.challenges && (
@@ -415,13 +378,18 @@ const ProjectDetailPage = () => {
                     {/* Right Column: Sidebar */}
                     <aside className="lg:col-span-4 space-y-12">
 
+                        {/* Table of Contents */}
+                        <div className="reveal-section">
+                            <TableOfContents content={project.fullDesc} title="Case Study" />
+                        </div>
+
                         {/* Tech Stack Card */}
                         <div className={`bg-yellow-50 p-6 md:p-8 ${brutalBorder} sticky top-32 reveal-section`}>
                             <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-2">
                                 <Code2 /> Tech Stack
                             </h3>
                             <div className="space-y-4">
-                                {project.tech.map((t, i) => {
+                                {(project.tech ?? []).map((t, i) => {
                                     // Handle both old (string) and new (object) formats for backward compatibility
                                     const name = typeof t === 'string' ? t : t.name;
                                     const purpose = typeof t === 'string' ? null : t.purpose;

@@ -22,6 +22,8 @@ const Skills = ({ skills = [] }) => {
                 scrollTrigger: {
                     trigger: containerRef.current,
                     start: "top 80%",
+                    once: true,
+                    invalidateOnRefresh: true,
                 },
                 scale: 0.5,
                 opacity: 0,
@@ -31,7 +33,13 @@ const Skills = ({ skills = [] }) => {
                 ease: "back.out(1.7)"
             });
         }, containerRef);
-        return () => ctx.revert();
+
+        const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+
+        return () => {
+            cancelAnimationFrame(raf);
+            ctx.revert();
+        };
     }, [skills]);
 
     // Zero Gravity Animation Effect

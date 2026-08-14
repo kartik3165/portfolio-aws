@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { MarkdownComponents } from './MarkdownComponents';
+import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownToolbar from './MarkdownToolbar';
 import { addBlog, updateBlog } from '../../api/blog';
 import { getPresignedUrl, uploadFileToUrl } from '../../api/upload';
@@ -295,11 +293,11 @@ const BlogForm = ({ blog, onSave, onCancel }) => {
                                 ? 'bg-gray-700 border-gray-600 text-gray-200'
                                 : 'bg-gray-100 border-gray-200 text-gray-700'
                                 }`}>Preview</label>
-                            <div className={`flex-1 overflow-y-auto p-4 prose max-w-none ${isDarkMode
-                                ? 'prose-invert text-gray-200 prose-headings:text-gray-100 prose-p:text-gray-300 prose-strong:text-gray-100 prose-code:text-gray-100 prose-ul:text-gray-300 prose-ol:text-gray-300'
-                                : 'prose-indigo'
+                            <div className={`flex-1 overflow-y-auto p-4 ${isDarkMode
+                                ? '!bg-gray-800'
+                                : '!bg-gray-50'
                                 }`}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{formData.content || '*Preview will appear here*'}</ReactMarkdown>
+                                <MarkdownRenderer content={formData.content || '*Preview will appear here*'} />
                             </div>
                         </div>
                     </div>

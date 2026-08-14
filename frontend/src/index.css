@@ -42,3 +42,146 @@ h5,
 h6 {
   @apply font-bold tracking-tight text-gray-900;
 }
+
+/* --- Markdown: code blocks (rehype-pretty-code) --- */
+@layer components {
+  [data-rehype-pretty-code-figure] pre {
+    @apply bg-black p-0 m-0 font-mono text-sm leading-relaxed text-[#e6edf3];
+    tab-size: 4;
+  }
+
+  /* line numbers (opt-in via ```lang ln) */
+  code[data-line-numbers] {
+    counter-reset: line;
+  }
+
+  code[data-line-numbers] > [data-line]::before {
+    counter-increment: line;
+    content: counter(line);
+    @apply inline-block w-[2.5ch] mr-6 text-right text-[#8b949e] select-none;
+  }
+
+  code[data-line-numbers][data-line-numbers-max-digits="2"] > [data-line]::before {
+    @apply w-[3.5ch];
+  }
+
+  code[data-line-numbers][data-line-numbers-max-digits="3"] > [data-line]::before {
+    @apply w-[4.5ch];
+  }
+
+  /* highlighted lines (```lang {1-3}) */
+  [data-line][data-highlighted-line] {
+    @apply bg-yellow-400/15;
+    box-shadow: inset 3px 0 0 0 #facc15;
+  }
+
+  /* --- Markdown: heading anchor links --- */
+  .anchor-link {
+    @apply inline-block ml-2 text-black;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .anchor-link .icon-link {
+    @apply font-black;
+  }
+
+  .icon-link::before {
+    content: "#";
+  }
+
+  h1:hover .anchor-link,
+  h2:hover .anchor-link,
+  h3:hover .anchor-link,
+  h4:hover .anchor-link,
+  .anchor-link:focus-visible {
+    @apply opacity-100;
+  }
+
+  .anchor-link:focus-visible {
+    @apply outline-2 outline-yellow-400;
+    outline-offset: 2px;
+  }
+
+  /* --- Markdown: GitHub-style blockquote alerts --- */
+  .markdown-alert {
+    @apply my-6 p-4 md:p-5 border-2 border-l-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)];
+  }
+
+  .markdown-alert .markdown-alert-title {
+    @apply flex items-center gap-2 font-black uppercase tracking-wider mb-3;
+  }
+
+  .markdown-alert .markdown-alert-title svg {
+    @apply w-5 h-5;
+    fill: currentColor;
+  }
+
+  .markdown-alert-note {
+    @apply bg-blue-50 border-l-blue-600 text-blue-900;
+  }
+
+  .markdown-alert-tip {
+    @apply bg-emerald-50 border-l-emerald-600 text-emerald-900;
+  }
+
+  .markdown-alert-warning {
+    @apply bg-amber-50 border-l-amber-600 text-amber-900;
+  }
+
+  .markdown-alert-important {
+    @apply bg-red-50 border-l-red-600 text-red-900;
+  }
+
+  .markdown-alert-caution {
+    @apply bg-pink-50 border-l-pink-600 text-pink-900;
+  }
+
+  .markdown-alert > p {
+    @apply font-medium leading-relaxed mb-2;
+  }
+
+  .markdown-alert > p:last-child {
+    @apply mb-0;
+  }
+
+  /* --- Markdown: katex --- */
+  .katex-display {
+    @apply overflow-x-auto overflow-y-hidden py-2 my-6;
+  }
+
+  .katex {
+    @apply text-[1.05em];
+  }
+
+  /* --- Markdown: footnotes --- */
+  section[data-footnotes] {
+    @apply mt-12 pt-6 border-t-2 border-gray-300;
+  }
+
+  section[data-footnotes] > ol {
+    @apply list-none p-0 m-0 space-y-1;
+  }
+
+  section[data-footnotes] li {
+    @apply text-base font-medium leading-relaxed;
+  }
+
+  a[data-footnote-ref] {
+    @apply font-bold text-blue-600 no-underline;
+  }
+
+  a[data-footnote-ref]:hover {
+    @apply bg-yellow-400 text-black;
+  }
+
+  section[data-footnotes] a[data-footnote-backref] {
+    @apply ml-2 font-black no-underline text-gray-400 hover:bg-yellow-400 hover:text-black;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anchor-link {
+    transition: none;
+  }
+}
