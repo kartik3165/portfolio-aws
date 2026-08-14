@@ -44,7 +44,7 @@ def test_get_project_by_slug_success():
         "problem": "Problem",
         "solution": "Solution",
         "outcome": "Outcome",
-        "architecture": ["Arch"],
+        "architectureMermaid": None,
         "challenges": ["Challenge"],
         "learnings": ["Learning"],
         "future": ["Future"],
@@ -56,7 +56,6 @@ def test_get_project_by_slug_success():
         "document": "doc",
         "features": ["Feature"],
         "screenshots": ["screen.png"],
-        "architectureImage": None,
         "created_at": None,
         "updated_at": None
     }

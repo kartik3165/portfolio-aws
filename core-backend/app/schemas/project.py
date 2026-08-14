@@ -32,8 +32,7 @@ class ProjectDetail(BaseModel):
     problem: str = ""
     solution: str = ""
     outcome: str = ""
-    architecture: List[str] = []
-    architectureImage: Optional[str] = None
+    architectureMermaid: Optional[str] = None
     challenges: List[str] = []
     learnings: List[str] = []
     future: List[str] = []
@@ -61,8 +60,7 @@ class ProjectCreate(BaseModel):
     problem: str
     solution: str
     outcome: str
-    architecture: List[str]
-    architectureImage: Optional[str] = None
+    architectureMermaid: Optional[str] = None
     challenges: List[str]
     learnings: List[str]
     future: List[str]
@@ -86,8 +84,7 @@ class ProjectUpdate(BaseModel):
     problem: Optional[str] = None
     solution: Optional[str] = None
     outcome: Optional[str] = None
-    architecture: Optional[List[str]] = None
-    architectureImage: Optional[str] = None
+    architectureMermaid: Optional[str] = None
     challenges: Optional[List[str]] = None
     learnings: Optional[List[str]] = None
     future: Optional[List[str]] = None

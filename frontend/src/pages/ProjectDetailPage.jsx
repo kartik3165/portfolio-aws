@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Github, ExternalLink, Code2, Layers, FileText, ArrowRight, Server, Database, Cpu, Brain, Zap, Monitor, X } from 'lucide-react';
+import { ArrowLeft, Github, ExternalLink, Code2, Layers, FileText, Brain, Zap, Monitor, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import gsap from 'gsap';
@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { api } from '../api/client';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import TableOfContents from '../components/TableOfContents';
+import MermaidDiagram from '../components/MermaidDiagram';
 import useScrollTracking from "../hooks/useScrollTracking";
 import { Skeleton, SkeletonText } from '../components/Skeleton';
 
@@ -314,6 +315,18 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
                         </section>
+
+                        {/* System Architecture */}
+                        {project.architectureMermaid && (
+                            <section className="reveal-section">
+                                <h3 className="text-3xl font-black uppercase mb-8 flex items-center gap-3">
+                                    <Layers size={32} /> System Architecture
+                                </h3>
+                                <div className={`bg-white p-4 md:p-8 ${brutalBorder} ${brutalShadow}`}>
+                                    <MermaidDiagram chart={project.architectureMermaid} />
+                                </div>
+                            </section>
+                        )}
 
                         {/* Challenges & Learnings */}
                         <section className="reveal-section grid grid-cols-1 md:grid-cols-2 gap-8">

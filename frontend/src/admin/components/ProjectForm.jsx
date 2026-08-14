@@ -6,6 +6,7 @@ import { getPresignedUrl, uploadFileToUrl } from '../../api/upload';
 import { compressImage } from '../utils/image';
 import { slugify } from '../utils/string';
 import { uploadFile } from '../../api/upload';
+import MermaidDiagram from '../../components/MermaidDiagram';
 
 const ProjectForm = ({ project, onSave, onCancel }) => {
     // Initial State - Matching the extensive schema
@@ -19,8 +20,7 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
         problem: '',
         solution: '',
         outcome: '',
-        architecture: [], // string[]
-        architectureImage: '',
+        architectureMermaid: '',
         challenges: [], // string[]
         learnings: [], // string[]
         future: [], // string[]
@@ -36,7 +36,7 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [uploadingField, setUploadingField] = useState(null); // 'coverImage', 'architectureImage', 'screenshots', or null
+    const [uploadingField, setUploadingField] = useState(null); // 'coverImage', 'screenshots', or null
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('basic'); // basic, details, media, lists, tech
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -51,7 +51,7 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
                 ...project,
                 // Ensure arrays are arrays even if backend returns null/undefined
                 stats: project.stats || [],
-                architecture: project.architecture || [],
+                architectureMermaid: project.architectureMermaid || '',
                 challenges: project.challenges || [],
                 learnings: project.learnings || [],
                 future: project.future || [],
@@ -367,16 +367,6 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
                                 </div>
                             )}
                         </div>
-                        <div className="neo-card bg-gray-50 relative">
-                            <label className="block text-sm font-bold mb-2">Architecture Image</label>
-                            <input type="file" onChange={e => handleImageUpload(e, 'architectureImage')} disabled={!!uploadingField} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                            {formData.architectureImage && <img src={formData.architectureImage} alt="Architecture" className="mt-2 h-40 w-full object-contain rounded border border-gray-300" />}
-                            {uploadingField === 'architectureImage' && (
-                                <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-lg backdrop-blur-sm pointer-events-none">
-                                    <span className="text-sm font-bold text-indigo-600 animate-pulse">Uploading...</span>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                     <div className="neo-card bg-gray-50 relative">
@@ -474,18 +464,22 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
                                 </div>
                             ))}
                         </div>
-                        {/* Architecture List */}
-                        <div className="neo-card">
-                            <div className="flex justify-between items-center mb-2">
-                                <h4 className="font-bold text-gray-700">Architecture Steps</h4>
-                                <button type="button" onClick={() => addArrayItem('architecture')} className="text-sm text-indigo-600 font-medium">+ Add</button>
-                            </div>
-                            {formData.architecture.map((item, idx) => (
-                                <div key={idx} className="flex gap-2 mb-2">
-                                    <input className="neo-input w-full" value={item} onChange={e => handleArrayChange(idx, e.target.value, 'architecture')} />
-                                    <button type="button" onClick={() => removeArrayItem(idx, 'architecture')} className="text-red-500">&times;</button>
+                        {/* System Architecture (Mermaid) */}
+                        <div className="neo-card col-span-full">
+                            <label className="block font-bold text-gray-700 mb-2">System Architecture (Mermaid)</label>
+                            <textarea
+                                name="architectureMermaid"
+                                value={formData.architectureMermaid}
+                                onChange={handleChange}
+                                className="neo-input font-mono text-sm h-40 resize-y"
+                                placeholder="flowchart LR&#10;    Client --> API&#10;    API --> DB[(DynamoDB)]"
+                            />
+                            {formData.architectureMermaid.trim() && (
+                                <div className="mt-4 border border-gray-200 rounded-lg bg-gray-50 p-4 overflow-x-auto">
+                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Preview</p>
+                                    <MermaidDiagram chart={formData.architectureMermaid} />
                                 </div>
-                            ))}
+                            )}
                         </div>
                         {/* Challenges */}
                         <div className="neo-card">
