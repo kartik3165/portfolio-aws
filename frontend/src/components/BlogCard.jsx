@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Calendar, User, Share2, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { hasText, firstText } from '../utils/content';
 
 const BlogCard = ({ blog }) => {
     const [copied, setCopied] = useState(false);
@@ -45,7 +46,7 @@ const BlogCard = ({ blog }) => {
             <div className={`bg-white h-full flex flex-col ${brutalBorder} ${brutalShadow} ${brutalHover}`}>
                 {/* Image Container */}
                 <div className="h-48 overflow-hidden border-b-[3px] border-black bg-gray-200 relative">
-                    {blog.image ? (
+                    {hasText(blog.image) ? (
                         <img
                             src={blog.image}
                             alt={blog.title}
@@ -65,7 +66,7 @@ const BlogCard = ({ blog }) => {
                             {copied ? <Check size={14} className="text-green-600" /> : <Share2 size={14} />}
                         </button>
                         <div className="bg-white px-3 py-1 font-bold text-xs uppercase border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center">
-                            {blog.tags[0]}
+                            {firstText(blog.tags) || 'Post'}
                         </div>
                     </div>
                 </div>

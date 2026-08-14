@@ -29,6 +29,7 @@ backend/
 │   ├── start_local_db.sh       # Start persistent dynamodb-local container + create tables
 │   ├── init_local_db.sh       # Create tables in dynamodb-local
 │   ├── init_ssm.sh            # Create SSM secrets for deployment
+│   ├── deploy.sh              # One-shot production deploy (SSM -> SAM -> admin init)
 │   └── seed_bio.py            # Seed bio into ProfileTable
 ├── tests/                     # Test suite
 ├── template.yaml              # AWS SAM template
@@ -67,3 +68,60 @@ FastAPI · Python 3.13 · AWS Lambda (SAM) · API Gateway · DynamoDB · Cloudfl
 | PUT | `/admin/bio` | Bio update |
 | DELETE | `/admin/comment/{blogId}/{commentId}` | Moderation |
 | POST | `/admin/upload/presigned-url`, `/admin/upload/upload-file` | R2 uploads |
+
+## 🚀 Deployment (AWS)
+
+Serverless: FastAPI + Mangum runs on **AWS Lambda** behind an **HTTP API Gateway** (SAM), backed by **DynamoDB**, with secrets in **SSM Parameter Store** and images in **Cloudflare R2**. The admin frontend and public site are separate static builds (S3 + CloudFront / Amplify / Cloudflare Pages).
+
+### 1. Prerequisites
+
+```bash
+aws configure            # region: ap-south-1
+sam --version            # AWS SAM CLI
+```
+Also provision the 5 DynamoDB tables (partition key `PK`, sort key `SK`, both String, on-demand capacity):
+```bash
+for t in BlogsTable BlogCommentsTable SkillsTable ProjectsTable ProfileTable; do
+  aws dynamodb create-table \
+    --table-name "$t" \
+    --attribute-definitions AttributeName=PK,AttributeType=S AttributeName=SK,AttributeType=S \
+    --key-schema AttributeName=PK,KeyType=HASH AttributeName=SK,KeyType=RANGE \
+    --billing-mode PAY_PER_REQUEST --region ap-south-1
+done
+```
+
+### 2. Deploy the backend
+
+`scripts/deploy.sh` does everything: creates SSM secrets (skips existing) → `sam build` → `sam deploy` → reads the API URL → initializes the admin account.
+
+```bash
+cd core-backend
+./scripts/deploy.sh [region]    # default: $AWS_REGION or ap-south-1
+```
+
+At the end it prints the **API base URL** and the **TOTP secret** to add to your authenticator app.
+
+Secrets live under `/portfolio/*` in SSM: `JWT_SECRET`, `BOOTSTRAP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and the `R2_*` upload config. Run `./scripts/init_ssm.sh` on its own to (re)create them interactively.
+
+### 3. Point the frontend at the API
+
+The React/Vite frontend reads `VITE_API_URL` in production (`frontend/src/api/client.js`):
+```bash
+cd frontend
+VITE_API_URL="<API_URL>" npm run build    # outputs dist/
+```
+Upload `dist/` to an S3 bucket and serve via **CloudFront** (SPA fallback: map `403`/`404` error responses to `/index.html`). Optionally add a custom domain with an ACM certificate (us-east-1 for CloudFront).
+
+### 4. CORS
+
+Both `ALLOWED_ORIGINS` in `app/main.py` and `CorsConfiguration` in `template.yaml` must list every domain that calls the API (public site + admin site). Add yours before deploying, e.g. `https://kanbs.example.com`.
+
+### 5. Admin login
+
+Login is 2-step: `POST /admin/auth/init` (one-time, requires the `x-bootstrap-secret` header) then `POST /admin/login` (email + password) → `POST /admin/login/totp` (TOTP or a backup code). Cookies are `HttpOnly` + `Secure` + `SameSite=Strict`, so the admin site must be served over HTTPS from a CORS-allowed origin.
+
+### Gotchas
+
+- Do **not** copy the local `.env` (`DYNAMODB_ENDPOINT=http://localhost:8001`) to Lambda — leave `DYNAMODB_ENDPOINT` unset in production.
+- `deploy.sh` re-running is safe: SSM params are skipped if they exist, and `/admin/auth/init` returns 409 once credentials exist.
+- Token rotation means rotating `JWT_SECRET` invalidates all sessions.

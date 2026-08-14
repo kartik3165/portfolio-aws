@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownToolbar from './MarkdownToolbar';
 import { addProject, updateProject } from '../../api/projects';
-import { getPresignedUrl, uploadFileToUrl } from '../../api/upload';
 import { compressImage } from '../utils/image';
 import { slugify } from '../utils/string';
 import { uploadFile } from '../../api/upload';
-import MermaidDiagram from '../../components/MermaidDiagram';
+import MermaidEditor from './MermaidEditor';
 
 const ProjectForm = ({ project, onSave, onCancel }) => {
     // Initial State - Matching the extensive schema
@@ -145,8 +144,6 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
             const compressedFile = await compressImage(file);
             // Use original name for GIFs to keep extension, or ensure webp extension for others
             // compressImage now handles this check internally for the file object, but we might want to sanitize the name
-            const sanitizedName = compressedFile.name.replace(/\s+/g, '_');
-            const filename = `${Date.now()}-${sanitizedName}`;
 
             const { public_url } = await uploadFile(compressedFile, 'projects');
 
@@ -466,20 +463,11 @@ const ProjectForm = ({ project, onSave, onCancel }) => {
                         </div>
                         {/* System Architecture (Mermaid) */}
                         <div className="neo-card col-span-full">
-                            <label className="block font-bold text-gray-700 mb-2">System Architecture (Mermaid)</label>
-                            <textarea
-                                name="architectureMermaid"
+                            <MermaidEditor
+                                label="System Architecture (Mermaid)"
                                 value={formData.architectureMermaid}
-                                onChange={handleChange}
-                                className="neo-input font-mono text-sm h-40 resize-y"
-                                placeholder="flowchart LR&#10;    Client --> API&#10;    API --> DB[(DynamoDB)]"
+                                onChange={(val) => setFormData(prev => ({ ...prev, architectureMermaid: val }))}
                             />
-                            {formData.architectureMermaid.trim() && (
-                                <div className="mt-4 border border-gray-200 rounded-lg bg-gray-50 p-4 overflow-x-auto">
-                                    <p className="text-xs font-bold text-gray-500 uppercase mb-2">Preview</p>
-                                    <MermaidDiagram chart={formData.architectureMermaid} />
-                                </div>
-                            )}
                         </div>
                         {/* Challenges */}
                         <div className="neo-card">

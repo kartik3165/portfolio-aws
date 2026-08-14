@@ -9,6 +9,7 @@ import { api } from '../api/client';
 import useScrollTracking from "../hooks/useScrollTracking";
 import { ArrowLeft, Clock, Calendar, User, Share2, Check } from 'lucide-react';
 import { Skeleton } from '../components/Skeleton';
+import { hasText, hasItems, firstText } from '../utils/content';
 
 const BlogPostPage = () => {
     const { slug } = useParams();
@@ -98,9 +99,9 @@ const BlogPostPage = () => {
                     {/* Header */}
                     <header className="mb-10">
                         <div className="flex flex-wrap gap-3 mb-4 text-sm font-bold uppercase tracking-wider text-gray-500">
-                            {blog.tags && blog.tags.length > 0 && (
+                            {hasItems(blog.tags) && (
                                 <div className="bg-yellow-400 text-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                    {blog.tags[0]}
+                                    {firstText(blog.tags)}
                                 </div>
                             )}
                             <span className="flex items-center gap-2"><Calendar size={16} /> {blog.date}</span>
@@ -114,9 +115,9 @@ const BlogPostPage = () => {
                         <div className="flex items-center justify-between border-y-2 border-black/10 py-5">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold">
-                                    {blog.author ? blog.author.charAt(0) : 'K'}
+                                    {hasText(blog.author) ? blog.author.charAt(0) : 'K'}
                                 </div>
-                                <span className="font-bold uppercase">{blog.author}</span>
+                                <span className="font-bold uppercase">{hasText(blog.author) ? blog.author : 'Kartik Nagare'}</span>
                             </div>
                             <button
                                 onClick={async () => {
@@ -161,7 +162,7 @@ const BlogPostPage = () => {
                     </header>
 
                     {/* Featured Image */}
-                    {blog.image && (
+                    {hasText(blog.image) && (
                         <div className={`w-full h-auto mb-10 overflow-hidden ${brutalBorder} ${brutalShadow}`}>
                             <img src={blog.image} alt={blog.title} className="w-full h-auto object-contain" />
                         </div>
@@ -175,13 +176,15 @@ const BlogPostPage = () => {
                             </div>
 
                             {/* Tags Footer */}
-                            <div className="flex gap-2 mb-12">
-                                {(blog.tags ?? []).map((tag, i) => (
-                                    <span key={i} className="px-4 py-2 bg-gray-100 font-bold text-sm uppercase rounded-full">
-                                        #{tag}
-                                    </span>
-                                ))}
-                            </div>
+                            {hasItems(blog.tags) && (
+                                <div className="flex gap-2 mb-12">
+                                    {blog.tags.filter(hasText).map((tag, i) => (
+                                        <span key={i} className="px-4 py-2 bg-gray-100 font-bold text-sm uppercase rounded-full">
+                                            #{tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <aside className="lg:col-span-4">

@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { api } from '../api/client';
 import { Skeleton, SkeletonText } from '../components/Skeleton';
+import { hasText, hasItems } from '../utils/content';
 
 const AboutPage = () => {
     const containerRef = useRef(null);
@@ -74,13 +75,13 @@ const AboutPage = () => {
                             About <br /><span className="text-blue-600">Kartik Nagare.</span>
                         </h1>
                         <p className="text-xl md:text-3xl font-bold max-w-3xl leading-relaxed">
-                            {bio?.summary || "A backend-focused engineer passionate about distributed systems, cloud architecture, and building reliable solutions that scale. I enjoy solving complex problems with simple, efficient designs and creating technology that makes a real-world impact."}
+                            {hasText(bio?.summary) ? bio.summary : "A backend-focused engineer passionate about distributed systems, cloud architecture, and building reliable solutions that scale. I enjoy solving complex problems with simple, efficient designs and creating technology that makes a real-world impact."}
                         </p>
                     </div>
                     <div className="about-image flex justify-center md:justify-end">
                         <div className="w-72 h-72 md:w-96 md:h-96 relative">
                             <img
-                                src={bio?.about_image || "https://img.reportgenai.in/blog/019c0ac5-99a8-79b1-810e-7e64cda93483.webp"}
+                                src={hasText(bio?.about_image) ? bio.about_image : "https://img.reportgenai.in/blog/019c0ac5-99a8-79b1-810e-7e64cda93483.webp"}
                                 alt="Kartik Nagare"
                                 className="w-full h-full object-contain drop-shadow-2xl"
                             />
@@ -146,7 +147,7 @@ const AboutPage = () => {
                                 <h2 className="text-3xl font-black uppercase">My Story</h2>
                             </div>
                             <div className="text-lg md:text-xl font-medium leading-relaxed whitespace-pre-wrap">
-                                {bio?.story ? bio.story : (
+                                {hasText(bio?.story) ? bio.story : (
                                     <>
                                         <p className="mb-6">
                                             I am currently a Computer Engineering student at <span className="font-black bg-yellow-200 px-1">ZCOER Pune</span>. My journey started with simple Python scripts and evolved into architecting complex serverless backends and real-time IoT systems.
@@ -213,7 +214,7 @@ const AboutPage = () => {
                                                 {exp.company} <span className="text-sm font-medium text-gray-400">• {exp.location}</span>
                                             </p>
                                             <ul className="list-disc pl-5 space-y-2 font-medium text-gray-800">
-                                                {exp.description && exp.description.map((desc, i) => (
+                                                {Array.isArray(exp.description) && exp.description.filter(hasText).map((desc, i) => (
                                                     <li key={i}>{desc}</li>
                                                 ))}
                                             </ul>
@@ -243,15 +244,15 @@ const AboutPage = () => {
                                                     {paper.description}
                                                 </p>
                                             </div>
-                                            {paper.link && (
+                                            {hasText(paper.link) && (
                                                 <a href={paper.link} target="_blank" rel="noopener noreferrer">
                                                     <ArrowRight className="flex-shrink-0 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all text-blue-600" size={32} />
                                                 </a>
                                             )}
                                         </div>
-                                        {paper.tags && (
+                                        {hasItems(paper.tags) && (
                                             <div className="flex gap-2 mt-6">
-                                                {paper.tags.map((tag, i) => (
+                                                {paper.tags.filter(hasText).map((tag, i) => (
                                                     <span key={i} className="px-3 py-1 bg-gray-100 border-2 border-black text-xs font-black uppercase">{tag}</span>
                                                 ))}
                                             </div>

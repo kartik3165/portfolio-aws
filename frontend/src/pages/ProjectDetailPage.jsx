@@ -11,6 +11,7 @@ import TableOfContents from '../components/TableOfContents';
 import MermaidDiagram from '../components/MermaidDiagram';
 import useScrollTracking from "../hooks/useScrollTracking";
 import { Skeleton, SkeletonText } from '../components/Skeleton';
+import { hasText, hasItems, firstText } from '../utils/content';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -149,6 +150,10 @@ const ProjectDetailPage = () => {
     const brutalShadow = "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]";
     const brutalBtn = `px-6 py-3 font-black uppercase text-sm md:text-base tracking-wider ${brutalBorder} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all`;
 
+    const heroImage = hasText(project.coverImage)
+        ? project.coverImage
+        : firstText(project.screenshots, (s) => s);
+    const firstTechName = firstText(project.tech) || "Project";
 
     return (
         <div className="min-h-screen bg-[#fafafa] font-sans text-black selection:bg-yellow-400 overflow-x-hidden" ref={containerRef}>
@@ -165,7 +170,7 @@ const ProjectDetailPage = () => {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-3 mb-2">
                             <span className={`px-4 py-1 ${project.color} font-bold uppercase text-xs md:text-sm ${brutalBorder}`}>
-                                {project.tech?.[0]?.name || "Project"}
+                                {firstTechName}
                             </span>
                         </div>
 
@@ -180,7 +185,7 @@ const ProjectDetailPage = () => {
                         </div>
 
                         {/* Highlights / Stats */}
-                        {project.stats && (
+                        {hasItems(project.stats) && (
                             <div className="project-stats flex flex-wrap gap-6 md:gap-12 mt-4 pt-6 border-t-2 border-dashed border-gray-300">
                                 {project.stats.map((stat, i) => (
                                     <div key={i}>
@@ -192,8 +197,9 @@ const ProjectDetailPage = () => {
                         )}
 
                         {/* CTAs */}
+                        {(hasText(project.live) || hasText(project.github) || hasText(project.document)) && (
                         <div className="project-stats flex gap-4 flex-wrap mt-6">
-                            {project.live && (
+                            {hasText(project.live) && (
                                 <a
                                     href={project.live}
                                     target="_blank"
@@ -212,7 +218,7 @@ const ProjectDetailPage = () => {
                                 </a>
                             )}
 
-                            {project.github && (
+                            {hasText(project.github) && (
                                 <a
                                     href={project.github}
                                     target="_blank"
@@ -231,7 +237,7 @@ const ProjectDetailPage = () => {
                                 </a>
                             )}
 
-                            {project.document && (
+                            {hasText(project.document) && (
                                 <a
                                     href={project.document}
                                     target="_blank"
@@ -250,14 +256,15 @@ const ProjectDetailPage = () => {
                                 </a>
                             )}
                         </div>
+                        )}
                     </div>
 
                     {/* Hero Image - Larger & Impactful */}
-                    <div ref={heroImageRef} className={`w-full h-auto bg-gray-100 ${brutalBorder} ${brutalShadow} overflow-hidden relative cursor-pointer group`} onClick={() => setSelectedImage(project.coverImage || (project.screenshots && project.screenshots[0]))}>
+                    <div ref={heroImageRef} className={`w-full h-auto bg-gray-100 ${brutalBorder} ${brutalShadow} overflow-hidden relative cursor-pointer group`} onClick={() => setSelectedImage(heroImage)}>
                         <div className="flex items-center justify-center bg-gray-50">
-                            {project.coverImage || (project.screenshots && project.screenshots[0]) ? (
+                            {heroImage ? (
                                 <img
-                                    src={project.coverImage || project.screenshots[0]}
+                                    src={heroImage}
                                     alt={`${project.name} preview`}
                                     className="w-full h-auto object-contain"
                                 />
@@ -274,15 +281,16 @@ const ProjectDetailPage = () => {
                     {/* Left Column: Main Narrative */}
                     <div className="lg:col-span-8 flex flex-col gap-20">
                         {/* Markdown Description */}
-                        {project.fullDesc && (
+                        {hasText(project.fullDesc) && (
                             <div className="reveal-section mb-8">
                                 <MarkdownRenderer content={project.fullDesc} />
                             </div>
                         )}
 
                         {/* Problem / Solution / Outcome Blocks */}
+                        {(hasText(project.problem) || hasText(project.solution) || hasText(project.outcome)) && (
                         <section className="reveal-section flex flex-col gap-12">
-                            {project.problem && (
+                            {hasText(project.problem) && (
                                 <div>
                                     <h2 className="text-sm font-black uppercase text-gray-500 tracking-widest mb-4 flex items-center gap-2">
                                         <span className="w-8 h-[2px] bg-black"></span> The Problem
@@ -293,7 +301,7 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
 
-                            {project.solution && (
+                            {hasText(project.solution) && (
                                 <div>
                                     <h2 className="text-sm font-black uppercase text-gray-500 tracking-widest mb-4 flex items-center gap-2">
                                         <span className="w-8 h-[2px] bg-black"></span> The Solution
@@ -304,7 +312,7 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
 
-                            {project.outcome && (
+                            {hasText(project.outcome) && (
                                 <div className={`bg-gray-50 p-6 md:p-8 ${brutalBorder}`}>
                                     <h2 className="text-sm font-black uppercase text-gray-500 tracking-widest mb-4 flex items-center gap-2">
                                         <span className="w-8 h-[2px] bg-black"></span> The Outcome
@@ -315,9 +323,10 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
                         </section>
+                        )}
 
                         {/* System Architecture */}
-                        {project.architectureMermaid && (
+                        {hasText(project.architectureMermaid) && (
                             <section className="reveal-section">
                                 <h3 className="text-3xl font-black uppercase mb-8 flex items-center gap-3">
                                     <Layers size={32} /> System Architecture
@@ -329,14 +338,15 @@ const ProjectDetailPage = () => {
                         )}
 
                         {/* Challenges & Learnings */}
+                        {(hasItems(project.challenges) || hasItems(project.learnings)) && (
                         <section className="reveal-section grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {project.challenges && (
+                            {hasItems(project.challenges) && (
                                 <div>
                                     <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-3">
                                         <Zap className="text-red-500" /> Challenges
                                     </h3>
                                     <ul className="space-y-4">
-                                        {project.challenges.map((item, i) => (
+                                        {project.challenges.filter(hasText).map((item, i) => (
                                             <li key={i} className="flex gap-4">
                                                 <span className="font-black text-gray-300">0{i + 1}</span>
                                                 <p className="font-medium text-gray-800">{item}</p>
@@ -346,13 +356,13 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
 
-                            {project.learnings && (
+                            {hasItems(project.learnings) && (
                                 <div>
                                     <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-3">
                                         <Brain className="text-blue-500" /> Learnings
                                     </h3>
                                     <ul className="space-y-4">
-                                        {project.learnings.map((item, i) => (
+                                        {project.learnings.filter(hasText).map((item, i) => (
                                             <li key={i} className="flex gap-4">
                                                 <span className="font-black text-gray-300">0{i + 1}</span>
                                                 <p className="font-medium text-gray-800">{item}</p>
@@ -362,15 +372,16 @@ const ProjectDetailPage = () => {
                                 </div>
                             )}
                         </section>
+                        )}
 
                         {/* Screenshots Grid */}
-                        {project.screenshots && project.screenshots.length > 0 && (
+                        {hasItems(project.screenshots) && (
                             <section className="reveal-section">
                                 <h3 className="text-3xl font-black uppercase mb-8 flex items-center gap-3">
                                     <Monitor size={32} /> Interface
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {project.screenshots.map((src, i) => (
+                                    {project.screenshots.filter(hasText).map((src, i) => (
                                         <div
                                             key={i}
                                             className={`bg-gray-100 aspect-video ${brutalBorder} overflow-hidden group hover:shadow-lg transition-all cursor-pointer`}
@@ -392,42 +403,48 @@ const ProjectDetailPage = () => {
                     <aside className="lg:col-span-4 space-y-12">
 
                         {/* Table of Contents */}
-                        <div className="reveal-section">
-                            <TableOfContents content={project.fullDesc} title="Case Study" />
-                        </div>
+                        {hasText(project.fullDesc) && (
+                            <div className="reveal-section">
+                                <TableOfContents content={project.fullDesc} title="Case Study" />
+                            </div>
+                        )}
 
                         {/* Tech Stack Card */}
-                        <div className={`bg-yellow-50 p-6 md:p-8 ${brutalBorder} sticky top-32 reveal-section`}>
-                            <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-2">
-                                <Code2 /> Tech Stack
-                            </h3>
-                            <div className="space-y-4">
-                                {(project.tech ?? []).map((t, i) => {
-                                    // Handle both old (string) and new (object) formats for backward compatibility
-                                    const name = typeof t === 'string' ? t : t.name;
-                                    const purpose = typeof t === 'string' ? null : t.purpose;
+                        {hasItems(project.tech) && (
+                            <div className={`bg-yellow-50 p-6 md:p-8 ${brutalBorder} sticky top-32 reveal-section`}>
+                                <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-2">
+                                    <Code2 /> Tech Stack
+                                </h3>
+                                <div className="space-y-4">
+                                    {(project.tech ?? [])
+                                        .filter((t) => hasText(typeof t === 'string' ? t : t?.name))
+                                        .map((t, i) => {
+                                            // Handle both old (string) and new (object) formats for backward compatibility
+                                            const name = typeof t === 'string' ? t : t.name;
+                                            const purpose = typeof t === 'string' ? null : t.purpose;
 
-                                    return (
-                                        <div key={i} className="group">
-                                            <div className="flex items-center justify-between font-bold mb-1">
-                                                <span>{name}</span>
-                                            </div>
-                                            {purpose && (
-                                                <p className="text-xs text-gray-500 font-mono uppercase tracking-tight">{purpose}</p>
-                                            )}
-                                            <div className="h-[1px] w-full bg-black/10 mt-3 group-last:hidden" />
-                                        </div>
-                                    );
-                                })}
+                                            return (
+                                                <div key={i} className="group">
+                                                    <div className="flex items-center justify-between font-bold mb-1">
+                                                        <span>{name}</span>
+                                                    </div>
+                                                    {hasText(purpose) && (
+                                                        <p className="text-xs text-gray-500 font-mono uppercase tracking-tight">{purpose}</p>
+                                                    )}
+                                                    <div className="h-[1px] w-full bg-black/10 mt-3 group-last:hidden" />
+                                                </div>
+                                            );
+                                        })}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Future Improvements */}
-                        {project.future && (
+                        {hasItems(project.future) && (
                             <div className={`p-6 md:p-8 border-2 border-dashed border-gray-300 reveal-section`}>
                                 <h3 className="text-lg font-black uppercase mb-4 text-gray-500">Future Roadmap</h3>
                                 <ul className="space-y-3">
-                                    {project.future.map((item, i) => (
+                                    {project.future.filter(hasText).map((item, i) => (
                                         <li key={i} className="flex gap-2 text-sm font-bold text-gray-700">
                                             <span className="text-green-500">➜</span>
                                             {item}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
 
-const MermaidDiagram = ({ chart }) => {
+const MermaidDiagram = ({ chart, theme = 'default' }) => {
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -11,7 +11,7 @@ const MermaidDiagram = ({ chart }) => {
 
         (async () => {
             try {
-                mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'strict' });
+                mermaid.initialize({ startOnLoad: false, theme, securityLevel: 'strict' });
                 const id = `mmd-${Math.random().toString(36).slice(2, 10)}`;
                 const { svg, bindFunctions } = await mermaid.render(id, chart);
                 if (cancelled) return;
@@ -28,7 +28,7 @@ const MermaidDiagram = ({ chart }) => {
             cancelled = true;
             if (cleanupBind) cleanupBind();
         };
-    }, [chart]);
+    }, [chart, theme]);
 
     return <div ref={containerRef} className="flex justify-center overflow-x-auto" />;
 };

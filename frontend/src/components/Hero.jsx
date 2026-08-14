@@ -1,9 +1,11 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 import gsap from 'gsap';
+import { hasText } from '../utils/content';
 
 const Hero = ({ heroImage = 'https://img.reportgenai.in/profile.webp' }) => {
     const containerRef = useRef(null);
+    const safeHeroImage = hasText(heroImage) ? heroImage : 'https://img.reportgenai.in/profile.webp';
 
     useLayoutEffect(() => {
         const ctx = gsap.context(() => {
@@ -70,7 +72,7 @@ const Hero = ({ heroImage = 'https://img.reportgenai.in/profile.webp' }) => {
             {/* Profile Image - Absolute Bottom Right */}
             <div className="hero-image absolute bottom-40 md:bottom-0 right-0 z-0 w-[90vw] md:w-[60vw] lg:w-[45vw] h-[60vh] md:h-[85vh] pointer-events-none hidden md:flex items-end justify-end">
                 <img
-                    src={heroImage}
+                    src={safeHeroImage}
                     alt="Kartik Nagare"
                     className="w-full h-full object-contain object-bottom drop-shadow-2xl opacity-90"
                 />

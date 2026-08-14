@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SkeletonProjectCard } from './Skeleton';
+import { hasText, hasItems } from '../utils/content';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,7 +27,7 @@ const Projects = ({ projects = [], showViewAll = true, loading = false }) => {
                 ease: "power2.out"
             });
 
-            gsap.utils.toArray(".project-card").forEach((card, i) => {
+            gsap.utils.toArray(".project-card").forEach((card) => {
                 gsap.from(card, {
                     scrollTrigger: {
                         trigger: card,
@@ -75,7 +76,7 @@ const Projects = ({ projects = [], showViewAll = true, loading = false }) => {
                             >
                                 <div className="flex flex-col md:flex-row gap-8">
                                     <div className={`w-16 h-16 md:w-24 md:h-24 flex-shrink-0 ${project.color} ${brutalBorder} flex items-center justify-center overflow-hidden relative`}>
-                                        {project.coverImage ? (
+                                        {hasText(project.coverImage) ? (
                                             <img src={project.coverImage} alt={project.name} className="w-full h-full object-cover" />
                                         ) : (
                                             <Database size={40} />
@@ -85,11 +86,13 @@ const Projects = ({ projects = [], showViewAll = true, loading = false }) => {
                                         <h3 className="text-3xl md:text-5xl font-black mb-4 uppercase">{project.name}</h3>
                                         <p className="text-lg md:text-2xl font-bold mb-8">{project.shortDesc}</p>
                                         <div className="flex flex-wrap gap-2 mb-8">
-                                            {project.tech && project.tech.map((t, i) => (
-                                                <span key={i} className="px-3 py-1 bg-gray-200 text-sm md:text-base font-black border-2 border-black">
-                                                    {typeof t === 'string' ? t : t.name}
-                                                </span>
-                                            ))}
+                                            {hasItems(project.tech) && project.tech
+                                                .filter((t) => hasText(typeof t === 'string' ? t : t?.name))
+                                                .map((t, i) => (
+                                                    <span key={i} className="px-3 py-1 bg-gray-200 text-sm md:text-base font-black border-2 border-black">
+                                                        {typeof t === 'string' ? t : t.name}
+                                                    </span>
+                                                ))}
                                         </div>
                                         <div className="flex gap-6">
                                             <span className="flex items-center gap-2 font-black text-base md:text-lg uppercase hover:underline">

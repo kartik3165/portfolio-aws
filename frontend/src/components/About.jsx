@@ -3,6 +3,7 @@ import { Briefcase, Zap, Activity, Award, Github, Terminal, ArrowRight } from 'l
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { hasText, hasItems } from '../utils/content';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -39,7 +40,7 @@ const About = ({ bio = null }) => {
                     </h2>
                     <div className={`bg-white p-8 md:p-12 ${brutalBorder} ${brutalShadow}`}>
                         <div className="text-xl md:text-2xl font-bold leading-relaxed mb-6 whitespace-pre-wrap">
-                            {bio?.about_intro ? bio.about_intro : (
+                            {hasText(bio?.about_intro) ? bio.about_intro : (
                                 <>
                                     <p className="mb-6">
                                         Computer Engineering student at <span className="underline decoration-yellow-400 decoration-4">ZCOER Pune</span> with a strong interest in building scalable web applications and designing efficient backend systems. I enjoy turning ideas into practical, real-world technology solutions that create meaningful impact.
@@ -56,8 +57,8 @@ const About = ({ bio = null }) => {
                         </Link>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                            {bio?.highlights && bio.highlights.length > 0 ? (
-                                bio.highlights.map((highlight, index) => (
+                            {hasItems(bio?.highlights) ? (
+                                bio.highlights.filter(hasText).map((highlight, index) => (
                                     <div key={index} className="flex items-center gap-2 font-black">
                                         <Zap size={18} className={index % 2 === 0 ? "text-yellow-500" : "text-blue-600"} /> {highlight}
                                     </div>
