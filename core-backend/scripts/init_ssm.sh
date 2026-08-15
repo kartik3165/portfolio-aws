@@ -72,6 +72,13 @@ echo "    Skips parameters that already exist. SecureString type."
 
 gen_param "$PREFIX/JWT_SECRET"
 gen_param "$PREFIX/BOOTSTRAP_SECRET"
+
+if param_exists "$PREFIX/TOTP_ENCRYPTION_KEY"; then
+  echo "  [skip] $PREFIX/TOTP_ENCRYPTION_KEY (already exists)"
+else
+  put_param "$PREFIX/TOTP_ENCRYPTION_KEY" "$(openssl rand -base64 32)"
+  echo "  [info] generated a fresh Fernet key for TOTP encryption"
+fi
 ask "$PREFIX/ADMIN_EMAIL" "Admin email" "admin@kanbs.me"
 ask "$PREFIX/ADMIN_PASSWORD" "Admin password" "" 1
 ask "$PREFIX/R2_ACCOUNT_ID" "Cloudflare account ID" "" 1 1

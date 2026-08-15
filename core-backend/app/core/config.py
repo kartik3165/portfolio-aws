@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     JWT_AUDIENCE: str = "portfolio-admin"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15 # 15 minutes
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7 # 7 days
+    AUTH_COOKIE_SECURE: bool = True
+    AUTH_COOKIE_SAMESITE: str = "strict"
 
     # Optional Fernet key (32-byte urlsafe-base64). When set, the TOTP secret,
     # pending TOTP secret, and backup-code material are encrypted at rest.

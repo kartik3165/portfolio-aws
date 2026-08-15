@@ -44,6 +44,8 @@ Globals:
         JWT_SECRET_PARAM: /portfolio/JWT_SECRET
         JWT_ISSUER: portfolio-api
         JWT_AUDIENCE: portfolio-admin
+        AUTH_COOKIE_SECURE: "true"
+        AUTH_COOKIE_SAMESITE: "none"
         ADMIN_EMAIL_PARAM: /portfolio/ADMIN_EMAIL
         ADMIN_PASSWORD_PARAM: /portfolio/ADMIN_PASSWORD
         BOOTSTRAP_SECRET_PARAM: /portfolio/BOOTSTRAP_SECRET
@@ -62,6 +64,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - https://admin.kanbs.me
+          - https://kanbs.pages.dev
           - https://portfolio-frontend-admin.pages.dev
         AllowMethods:
           - GET

@@ -39,8 +39,8 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
             key=name,
             value=value,
             httponly=True,
-            secure=True,
-            samesite="strict",
+            secure=settings.AUTH_COOKIE_SECURE,
+            samesite=settings.AUTH_COOKIE_SAMESITE,
             max_age=max_age,
         )
 

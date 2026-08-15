@@ -118,10 +118,20 @@ Both `ALLOWED_ORIGINS` in `app/main.py` and `CorsConfiguration` in `template.yam
 
 ### 5. Admin login
 
-Login is 2-step: `POST /admin/auth/init` (one-time, requires the `x-bootstrap-secret` header) then `POST /admin/login` (email + password) → `POST /admin/login/totp` (TOTP or a backup code). Cookies are `HttpOnly` + `Secure` + `SameSite=Strict`, so the admin site must be served over HTTPS from a CORS-allowed origin.
+Login is 2-step: `POST /admin/auth/init` (one-time, requires the `x-bootstrap-secret` header) then `POST /admin/login` (email + password) → `POST /admin/login/totp` (TOTP or a backup code). Cookies are `HttpOnly` by default, `Secure` by default, and `SameSite=Strict` by default, so the admin site must be served over HTTPS from a CORS-allowed origin.
+
+If your deployed admin frontend and API are on different sites, set:
+
+```bash
+AUTH_COOKIE_SAMESITE=none
+AUTH_COOKIE_SECURE=true
+```
+
+This is required for browsers to send the admin session cookies on cross-site `fetch`/XHR requests.
 
 ### Gotchas
 
 - Do **not** copy the local `.env` (`DYNAMODB_ENDPOINT=http://localhost:8001`) to Lambda — leave `DYNAMODB_ENDPOINT` unset in production.
 - `deploy.sh` re-running is safe: SSM params are skipped if they exist, and `/admin/auth/init` returns 409 once credentials exist.
 - Token rotation means rotating `JWT_SECRET` invalidates all sessions.
+- If your admin frontend talks to the API from a different site, `AUTH_COOKIE_SAMESITE=none` is required or login will appear to succeed and the next admin API calls will still return `401`.
