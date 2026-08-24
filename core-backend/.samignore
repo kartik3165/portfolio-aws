@@ -1,0 +1,13 @@
+# SAM build — never bundle secrets or local artifacts
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.pytest_cache
+.coverage
+htmlcov/
+.aws-sam/
+*.pyc
+.DS_Store
+node_modules/

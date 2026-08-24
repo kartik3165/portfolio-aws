@@ -1,8 +1,10 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Personal portfolio API — FastAPI on AWS Lambda"
 readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Kartik Nagare" }]
 requires-python = ">=3.13"
 dependencies = [
     "argon2-cffi>=25.1.0",

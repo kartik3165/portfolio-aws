@@ -61,8 +61,8 @@ def client():
     return TestClient(app)
 
 
-ADMIN_EMAIL = "admin@kanbs.me"
-ADMIN_PASSWORD = "StrongPassword123!"
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "ChangeMeStrongPassword123!"
 BOOTSTRAP = settings.BOOTSTRAP_SECRET or "bootstrap-secret"
 
 
@@ -117,7 +117,7 @@ class TestInit:
         assert resp.status_code == 200
         body = resp.json()
         assert body["totp_secret"]
-        assert body["email"] == "admin@kanbs.me"
+        assert body["email"] == "admin@example.com"
 
     def test_init_rejects_second_call(self, initialized, client):
         resp = client.post("/admin/auth/init", headers={"x-bootstrap-secret": BOOTSTRAP})
@@ -136,7 +136,7 @@ class TestLoginFlow:
         assert resp.status_code == 401
 
     def test_login_wrong_email(self, initialized, client):
-        resp = client.post("/admin/login", json={"email": "other@kanbs.me", "password": ADMIN_PASSWORD})
+        resp = client.post("/admin/login", json={"email": "other@example.com", "password": ADMIN_PASSWORD})
         assert resp.status_code == 401
 
     def test_login_before_init(self, fake_table, client):

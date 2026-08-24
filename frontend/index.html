@@ -6,14 +6,9 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KANBS - Personal Portfolio</title>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FGT50Q4HJD"></script>
+  <!-- Google tag (gtag.js) — set VITE_GA_ID in frontend/.env (e.g. G-XXXX) or leave empty to disable -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-FGT50Q4HJD');
+    window.GA_ID = "%VITE_GA_ID%";
   </script>
 </head>
 

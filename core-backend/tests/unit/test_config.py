@@ -19,7 +19,7 @@ def test_loads_and_mirrors_secrets():
     mock_ssm.get_parameters.return_value = {
         "Parameters": [
             {"Name": "/portfolio/JWT_SECRET", "Value": "jwt-val"},
-            {"Name": "/portfolio/ADMIN_EMAIL", "Value": "admin@kanbs.me"},
+            {"Name": "/portfolio/ADMIN_EMAIL", "Value": "admin@example.com"},
         ],
         "InvalidParameters": [],
     }
@@ -28,7 +28,7 @@ def test_loads_and_mirrors_secrets():
     ):
         config.load_secrets_from_ssm(s)
         assert os.environ["JWT_SECRET"] == "jwt-val"
-        assert os.environ["ADMIN_EMAIL"] == "admin@kanbs.me"
+        assert os.environ["ADMIN_EMAIL"] == "admin@example.com"
 
     mock_client.assert_called_once()
     mock_ssm.get_parameters.assert_called_once_with(
@@ -36,7 +36,7 @@ def test_loads_and_mirrors_secrets():
         WithDecryption=True,
     )
     assert s.JWT_SECRET == "jwt-val"
-    assert s.ADMIN_EMAIL == "admin@kanbs.me"
+    assert s.ADMIN_EMAIL == "admin@example.com"
     assert s.TOTP_ENCRYPTION_KEY == ""
 
 

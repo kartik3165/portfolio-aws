@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { api } from '../api/client';
 import { Skeleton, SkeletonText } from '../components/Skeleton';
 import { hasText, hasItems } from '../utils/content';
+import { IMG_BASE_URL } from '../config';
 
 const AboutPage = () => {
     const containerRef = useRef(null);
@@ -81,7 +82,7 @@ const AboutPage = () => {
                     <div className="about-image flex justify-center md:justify-end">
                         <div className="w-72 h-72 md:w-96 md:h-96 relative">
                             <img
-                                src={hasText(bio?.about_image) ? bio.about_image : "https://img.reportgenai.in/blog/019c0ac5-99a8-79b1-810e-7e64cda93483.webp"}
+                                src={hasText(bio?.about_image) ? bio.about_image : `${IMG_BASE_URL}/blog/019c0ac5-99a8-79b1-810e-7e64cda93483.webp`}
                                 alt="Kartik Nagare"
                                 className="w-full h-full object-contain drop-shadow-2xl"
                             />

@@ -16,7 +16,7 @@ def client():
 @pytest.fixture
 def auth_client(client):
     """TestClient with a valid access-token cookie set (simulates logged-in admin)"""
-    token = create_access_token({"sub": "admin@kanbs.me"})
+    token = create_access_token({"sub": "admin@example.com"})
     client.cookies.set("access_token", token)
     return client
 

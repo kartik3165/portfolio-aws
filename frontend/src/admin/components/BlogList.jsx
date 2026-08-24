@@ -1,4 +1,5 @@
 import React from 'react';
+import { SITE_URL } from '../../config';
 
 const BlogList = ({ blogs, onEdit, onDelete, onComments }) => {
     return (
@@ -42,7 +43,7 @@ const BlogList = ({ blogs, onEdit, onDelete, onComments }) => {
                             </button>
                             <button
                                 onClick={() => {
-                                    const url = `https://kanbs.me/blog/${blog.slug}`;
+                                    const url = `${SITE_URL}/blog/${blog.slug}`;
                                     navigator.clipboard.writeText(url);
                                     alert(`Copied link: ${url}`);
                                 }}

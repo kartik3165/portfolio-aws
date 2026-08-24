@@ -21,6 +21,14 @@ Parameters:
   RateLimitsTable:
     Type: String
     Default: RateLimitsTable
+  SiteUrl:
+    Type: String
+    Default: https://example.com
+    Description: Global base link — derived CORS origins (site, www, admin)
+  ImgBaseUrl:
+    Type: String
+    Default: https://img.example.com
+    Description: Global img/CDN base — keep in sync with R2_PUBLIC_BASE_URL
 
 Globals:
   Function:
@@ -41,6 +49,8 @@ Globals:
         PROJECTS_TABLE: !Ref ProjectsTable
         PROFILE_TABLE: !Ref ProfileTable
         RATE_LIMIT_TABLE: !Ref RateLimitsTable
+        SITE_URL: !Ref SiteUrl
+        R2_PUBLIC_BASE_URL: !Ref ImgBaseUrl
         JWT_SECRET_PARAM: /portfolio/JWT_SECRET
         JWT_ISSUER: portfolio-api
         JWT_AUDIENCE: portfolio-admin
@@ -62,9 +72,14 @@ Resources:
     Properties:
       StageName: '$default'
       CorsConfiguration:
+        # Global vars: SiteUrl (base link) + ImgBaseUrl (img base). CORS derives from SiteUrl in app/main.py;
+        # keep gateway list in sync — include www/admin variants.
         AllowOrigins:
-          - https://admin.kanbs.me
-          - https://kanbs.pages.dev
+          - !Ref SiteUrl
+          - https://www.example.com
+          - https://admin.example.com
+          - https://www.admin.example.com
+          - https://example.pages.dev
           - https://portfolio-frontend-admin.pages.dev
         AllowMethods:
           - GET

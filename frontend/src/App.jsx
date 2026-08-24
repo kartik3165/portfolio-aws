@@ -1,9 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Analytics from './analytics';
 import { TOTPProvider, useTOTP } from './admin/context/TOTPContext';
+
+const GA_ID = import.meta.env.VITE_GA_ID;
 
 const Home = lazy(() => import('./pages/Home'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
@@ -66,6 +68,18 @@ const ProtectedAdminRoute = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    if (!GA_ID || typeof document === 'undefined') return;
+    if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${GA_ID}"]`)) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+  }, []);
   return (
     <BrowserRouter>
       <Analytics />

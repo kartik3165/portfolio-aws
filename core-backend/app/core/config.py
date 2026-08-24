@@ -36,12 +36,14 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str = ""
     BOOTSTRAP_SECRET: str = ""
 
-    # R2
+    # Global URL bases — change once here (or via SSM)
+    SITE_URL: str = "https://example.com"  # base link for site (share URLs, CORS)
+    ALLOWED_ORIGINS: str = ""  # comma-separated extra origins (appended to derived SITE_URL variants)
+    R2_PUBLIC_BASE_URL: str = ""  # img/CDN base; also IMG_BASE_URL (VITE_IMG_BASE_URL on frontend)
     R2_ACCOUNT_ID: str = ""
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""
     R2_BUCKET_NAME: str = ""
-    R2_PUBLIC_BASE_URL: str = ""
 
     # SSM parameter names (only set in Lambda). Secret values are fetched at
     # init time with a single ssm:GetParameters(WithDecryption=True) call.

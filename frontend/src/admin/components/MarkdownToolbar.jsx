@@ -1,4 +1,5 @@
 import React from 'react';
+import { IMG_BASE_URL } from '../../config';
 
 const SNIPPETS = {
     h1: '# Heading 1',
@@ -62,9 +63,9 @@ Markdown is:
 ---
 
 ## Links and Images
-[Visit OpenAI](https://openai.com)
+[Visit Google](https://google.com)
 
-![Sample Image](https://img.reportgenai.in/blog/019c0ad0-7ecb-7534-8841-001f47736a1a.webp)
+    ![Sample Image](${IMG_BASE_URL}/blog/019c0ad0-7ecb-7534-8841-001f47736a1a.webp)
 
 ---
 

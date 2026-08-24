@@ -2,10 +2,11 @@ import React, { useLayoutEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 import gsap from 'gsap';
 import { hasText } from '../utils/content';
+import { IMG_BASE_URL } from '../config';
 
-const Hero = ({ heroImage = 'https://img.reportgenai.in/profile.webp' }) => {
+const Hero = ({ heroImage = `${IMG_BASE_URL}/profile.webp` }) => {
     const containerRef = useRef(null);
-    const safeHeroImage = hasText(heroImage) ? heroImage : 'https://img.reportgenai.in/profile.webp';
+    const safeHeroImage = hasText(heroImage) ? heroImage : `${IMG_BASE_URL}/profile.webp`;
 
     useLayoutEffect(() => {
         const ctx = gsap.context(() => {

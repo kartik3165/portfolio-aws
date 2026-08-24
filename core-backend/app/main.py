@@ -56,16 +56,34 @@ class SecurityHeadersMiddleware:
 app.add_middleware(SecurityHeadersMiddleware)
 
 
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://admin.kanbs.me",
-    "https://www.admin.kanbs.me",
-    "https://kanbs.me",
-    "https://www.kanbs.me",
-    "https://kanbs.pages.dev",
-    "https://portfolio-frontend-admin.pages.dev",
-]
+def _allowed_origins() -> list[str]:
+    # Global vars: SITE_URL is base link, R2_PUBLIC_BASE_URL is img base (not used for CORS)
+    site = (settings.SITE_URL or "https://example.com").rstrip("/")
+    # Derive variants from SITE_URL — admin subdomain, www, pages.dev host
+    host = site.replace("https://", "").replace("http://", "")
+    origins = {
+        "http://localhost:5173",
+        "http://localhost:5174",
+        site,
+        f"https://www.{host}",
+        f"https://admin.{host}",
+        f"https://www.admin.{host}",
+        "https://example.pages.dev",
+        "https://portfolio-frontend-admin.pages.dev",
+    }
+    # Allow extra origins via comma-separated env (e.g. custom Cloudflare Pages URL)
+    extra = getattr(settings, "ALLOWED_ORIGINS", "") if hasattr(settings, "ALLOWED_ORIGINS") else ""
+    # Support ALLOWED_ORIGINS env override (comma-separated)
+    import os
+    raw = os.getenv("ALLOWED_ORIGINS") or extra or ""
+    if raw:
+        for o in raw.split(","):
+            o = o.strip()
+            if o:
+                origins.add(o)
+    return sorted(origins)
+
+ALLOWED_ORIGINS = _allowed_origins()
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,0 +1,36 @@
+# Secrets & env
+.env
+.env.local
+core-backend/.env
+frontend/.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv*/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# SAM / AWS
+.aws-sam/
+samconfig.toml
+aws-sam/
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+*.sw?
+*.log
+npm-debug.log*

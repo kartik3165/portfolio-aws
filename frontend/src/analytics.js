@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const GA_ID = "G-FGT50Q4HJD";
+const GA_ID = import.meta.env.VITE_GA_ID;
 
 const Analytics = () => {
     const location = useLocation();
 
     useEffect(() => {
-        if (!window.gtag) return;
+        if (!GA_ID || !window.gtag) return;
 
         const path = location.pathname;
 
